@@ -16,6 +16,6 @@ Este proyecto es 100% ficticio (por ahora 👀), y está hecho con 💻, 🍬 y 
 
 ## 🧱 Tecnologías
 
-- **Python** (o lo que tu equipo haya elegido)
+- **Python**
 - **CSS** para el estilazo
 - **GitHub Pages** para desplegar esta maravilla al mundo
