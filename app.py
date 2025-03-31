@@ -1,20 +1,15 @@
-from flask import Flask, request, jsonify, session
+from flask import Flask, render_template, request, redirect, url_for, session
 from flask_sqlalchemy import SQLAlchemy
-from werkzeug.utils import secure_filename
 import os
 
 app = Flask(__name__)
 
-# Configuración de la base de datos y subida de archivos
+# Configuración de la base de datos
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///store.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['UPLOAD_FOLDER'] = os.path.join('static', 'imgs')
 app.secret_key = 'supersecretkey'
 
 db = SQLAlchemy(app)
-
-# Asegurarse de que el directorio de imágenes exista
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 # Modelos
 class User(db.Model):
@@ -34,92 +29,105 @@ class Product(db.Model):
     stock = db.Column(db.Integer, nullable=False)
     image_path = db.Column(db.String(200), nullable=True)
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
+
     category = db.relationship('Category', backref=db.backref('products', lazy=True))
 
-# Crear las tablas antes del primer request
 @app.before_first_request
 def create_tables():
     db.create_all()
 
-# Endpoints básicos
+# ---------------------------
+# Rutas principales
+# ---------------------------
 @app.route('/')
 def goto_inicio():
-    return jsonify({"message": "Bienvenido a Chuches PSD"}), 200
+    # Podrías redirigir a /inicio o renderizar directamente un index.html
+    return redirect(url_for('inicio'))
 
 @app.route('/inicio')
 def inicio():
-    return jsonify({"message": "Chuches PSD"}), 200
+    # Renderiza una plantilla HTML llamada inicio.html
+    return render_template('inicio.html')
 
-# Registro de usuario
-@app.route('/register', methods=['POST'])
+# ---------------------------
+# Registro de usuarios
+# ---------------------------
+@app.route('/register', methods=['GET', 'POST'])
 def register():
-    data = request.get_json()
-    email = data.get('email')
-    password = data.get('password')
-    if not email or not password:
-        return jsonify({"error": "Email y contraseña son requeridos"}), 400
-    if User.query.filter_by(email=email).first():
-        return jsonify({"error": "El usuario ya existe"}), 400
-    user = User(email=email, password=password)
-    db.session.add(user)
-    db.session.commit()
-    return jsonify({"message": "Usuario registrado exitosamente"}), 201
+    if request.method == 'POST':
+        # Procesar datos del formulario
+        email = request.form.get('email')
+        password = request.form.get('password')
 
-# Login de usuario
-@app.route('/login', methods=['POST'])
+        if not email or not password:
+            # Si falta algún campo, podrías renderizar de nuevo la plantilla con un mensaje de error
+            return render_template('register.html', error="Email y contraseña son requeridos")
+
+        # Verificar si ya existe el usuario
+        if User.query.filter_by(email=email).first():
+            return render_template('register.html', error="El usuario ya existe")
+
+        # Crear el usuario
+        user = User(email=email, password=password)
+        db.session.add(user)
+        db.session.commit()
+
+        # Redirigir a la página de login, por ejemplo
+        return redirect(url_for('login'))
+
+    # Si es GET, renderizamos el formulario de registro
+    return render_template('register.html')
+
+# ---------------------------
+# Login de usuarios
+# ---------------------------
+@app.route('/login', methods=['GET', 'POST'])
 def login():
-    data = request.get_json()
-    email = data.get('email')
-    password = data.get('password')
-    user = User.query.filter_by(email=email, password=password).first()
-    if not user:
-        return jsonify({"error": "Usuario inválido"}), 401
-    # Se guarda el id del usuario en la sesión (aunque no se implementa autenticación avanzada)
-    session['user_id'] = user.id
-    return jsonify({"message": "Inicio de sesión exitoso"}), 200
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
 
+        user = User.query.filter_by(email=email, password=password).first()
+        if not user:
+            # Credenciales inválidas
+            return render_template('login.html', error="Credenciales inválidas")
+
+        # Guardar el id del usuario en la sesión
+        session['user_id'] = user.id
+        # Redirigir a inicio (o a donde prefieras)
+        return redirect(url_for('inicio'))
+
+    # Si es GET, renderizamos el formulario de login
+    return render_template('login.html')
+
+# ---------------------------
 # Gestión de categorías
+# ---------------------------
 @app.route('/categorias', methods=['GET', 'POST'])
 def categorias():
-    if request.method == 'GET':
-        categories = Category.query.all()
-        result = [{"id": cat.id, "nombre": cat.nombre} for cat in categories]
-        return jsonify(result), 200
-    elif request.method == 'POST':
-        data = request.get_json()
-        nombre = data.get('nombre')
+    if request.method == 'POST':
+        # Procesar formulario para crear categoría
+        nombre = request.form.get('nombre')
         if not nombre:
-            return jsonify({"error": "Introduce el nombre de la categoría"}), 400
+            # Manejar error si hace falta
+            return render_template('categorias.html', error="El nombre es requerido", categories=Category.query.all())
+
         category = Category(nombre=nombre)
         db.session.add(category)
         db.session.commit()
-        return jsonify({"id": category.id, "nombre": category.nombre}), 201
+        return redirect(url_for('categorias'))
 
+    # Si es GET, mostramos la lista de categorías
+    all_categories = Category.query.all()
+    return render_template('categorias.html', categories=all_categories)
+
+# ---------------------------
 # Gestión de productos
+# ---------------------------
 @app.route('/productos', methods=['GET', 'POST'])
 def productos():
-    if request.method == 'GET':
-        # Se puede filtrar por category_id pasando ?category_id=valor
-        category_id = request.args.get('category_id')
-        if category_id:
-            products = Product.query.filter_by(category_id=category_id).all()
-        else:
-            products = Product.query.all()
-        result = []
-        for p in products:
-            result.append({
-                "id": p.id,
-                "nombre": p.nombre,
-                "descripcion": p.descripcion,
-                "precio": p.precio,
-                "stock": p.stock,
-                "image_path": p.image_path,
-                "category": {"id": p.category.id, "nombre": p.category.nombre}
-            })
-        return jsonify(result), 200
-
-    elif request.method == 'POST':
-        # Se espera que el request sea form-data, para poder incluir el archivo de imagen
+    if request.method == 'POST':
+        # Procesar formulario para crear producto
         nombre = request.form.get('nombre')
         descripcion = request.form.get('descripcion')
         precio = request.form.get('precio')
@@ -127,29 +135,41 @@ def productos():
         category_id = request.form.get('category_id')
 
         if not all([nombre, descripcion, precio, stock, category_id]):
-            return jsonify({"error": "Todos los campos (nombre, descripcion, precio, stock, category_id) son requeridos"}), 400
+            return render_template('productos.html',
+                                   error="Todos los campos son requeridos",
+                                   products=Product.query.all(),
+                                   categories=Category.query.all())
 
         try:
             precio = float(precio)
             stock = int(stock)
             category_id = int(category_id)
         except ValueError:
-            return jsonify({"error": "precio debe ser numérico y stock/category_id deben ser enteros"}), 400
+            return render_template('productos.html',
+                                   error="precio debe ser numérico y stock/category_id deben ser enteros",
+                                   products=Product.query.all(),
+                                   categories=Category.query.all())
 
-        # Manejo del archivo de imagen
+        # Si quieres subir imagen
         imagen = request.files.get('imagen')
         image_path = None
         if imagen:
-            filename = secure_filename(imagen.filename)
-            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            filename = imagen.filename
+            # Podrías usar secure_filename si quieres evitar problemas de seguridad
+            # from werkzeug.utils import secure_filename
+            # filename = secure_filename(imagen.filename)
+            upload_folder = os.path.join('static', 'imgs')
+            os.makedirs(upload_folder, exist_ok=True)
+            file_path = os.path.join(upload_folder, filename)
             imagen.save(file_path)
-            # Guardamos la ruta relativa
             image_path = os.path.join('static', 'imgs', filename)
 
-        # Verificar que la categoría exista
         category = Category.query.get(category_id)
         if not category:
-            return jsonify({"error": "Categoría no encontrada"}), 404
+            return render_template('productos.html',
+                                   error="Categoría no encontrada",
+                                   products=Product.query.all(),
+                                   categories=Category.query.all())
 
         product = Product(
             nombre=nombre,
@@ -161,57 +181,70 @@ def productos():
         )
         db.session.add(product)
         db.session.commit()
-        return jsonify({
-            "id": product.id,
-            "nombre": product.nombre,
-            "descripcion": product.descripcion,
-            "precio": product.precio,
-            "stock": product.stock,
-            "image_path": product.image_path,
-            "category": {"id": category.id, "nombre": category.nombre}
-        }), 201
+        return redirect(url_for('productos'))
 
-# Carrito de compra (almacenado en la sesión)
-@app.route('/carrito', methods=['GET', 'POST', 'PUT'])
+    # Si es GET, listamos productos
+    products = Product.query.all()
+    categories = Category.query.all()
+    return render_template('productos.html', products=products, categories=categories)
+
+# ---------------------------
+# Carrito de compra (en la sesión)
+# ---------------------------
+@app.route('/carrito', methods=['GET', 'POST'])
 def carrito():
-    # Inicializar carrito si no existe
     if 'cart' not in session:
         session['cart'] = {}
 
-    cart = session['cart']
+    if request.method == 'POST':
+        # Procesar formulario para agregar/eliminar producto del carrito
+        product_id = request.form.get('product_id')
+        quantity = request.form.get('quantity')
 
-    if request.method == 'GET':
-        return jsonify(cart), 200
-
-    elif request.method in ['POST', 'PUT']:
-        data = request.get_json()
-        product_id = data.get('product_id')
-        quantity = data.get('quantity')
-
-        if product_id is None or quantity is None:
-            return jsonify({"error": "product_id y quantity son requeridos"}), 400
+        if not product_id or not quantity:
+            return redirect(url_for('carrito'))
 
         try:
             quantity = int(quantity)
         except ValueError:
-            return jsonify({"error": "quantity debe ser un entero"}), 400
+            return redirect(url_for('carrito'))
 
-        # Convertir product_id a string para usarlo como key
-        product_key = str(product_id)
+        cart = session['cart']
         if quantity == 0:
-            # Eliminar el producto del carrito
-            if product_key in cart:
-                del cart[product_key]
+            cart.pop(product_id, None)  # Eliminar si existe
         else:
-            cart[product_key] = quantity
+            cart[product_id] = quantity
         session['cart'] = cart
-        return jsonify(cart), 200
+        return redirect(url_for('carrito'))
 
+    # Si es GET, mostramos el carrito
+    cart = session['cart']
+    # Convertir la info del carrito a objetos (para mostrar nombre, precio, etc.)
+    cart_items = []
+    total = 0
+    for prod_id, qty in cart.items():
+        product = Product.query.get(int(prod_id))
+        if product:
+            subtotal = product.precio * qty
+            cart_items.append({
+                'id': product.id,
+                'nombre': product.nombre,
+                'cantidad': qty,
+                'precio_unit': product.precio,
+                'subtotal': subtotal
+            })
+            total += subtotal
+
+    return render_template('carrito.html', cart_items=cart_items, total=total)
+
+# ---------------------------
 # Proceso de compra
+# ---------------------------
 @app.route('/compra', methods=['POST'])
 def compra():
     if 'cart' not in session or not session['cart']:
-        return jsonify({"error": "El carrito está vacío"}), 400
+        # Carrito vacío
+        return redirect(url_for('carrito'))
 
     cart = session['cart']
     total = 0.0
@@ -220,12 +253,14 @@ def compra():
     for prod_id, quantity in cart.items():
         product = Product.query.get(int(prod_id))
         if not product:
-            return jsonify({"error": f"Producto con id {prod_id} no encontrado"}), 404
+            # Producto no existe
+            return redirect(url_for('carrito'))
         if product.stock < quantity:
-            return jsonify({"error": f"Stock insuficiente para el producto {product.nombre}"}), 400
+            # Stock insuficiente
+            return redirect(url_for('carrito'))
         total += product.precio * quantity
 
-    # Si todo está correcto, se deduce el stock y se confirma la compra
+    # Si todo está correcto, se descuenta el stock
     for prod_id, quantity in cart.items():
         product = Product.query.get(int(prod_id))
         product.stock -= quantity
@@ -233,7 +268,9 @@ def compra():
     db.session.commit()
     # Limpiar el carrito
     session['cart'] = {}
-    return jsonify({"message": "Compra realizada con éxito", "total": total}), 200
+
+    # Renderizar una página de confirmación de compra
+    return render_template('compra_exito.html', total=total)
 
 if __name__ == '__main__':
     app.run(debug=True)
