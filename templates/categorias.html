@@ -3,12 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chuches PSD | Registro exitoso</title>
+    <title>Chuches PSD | Categorías</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
     <div class="wrapper">
-        <h2>🎉 {{ usuario }} registrado exitosamente 🎉</h2>
+        <h2>📂 Categorías disponibles 📂</h2>
+
+        {% if error %}
+            <p style="color: red;">{{ error }}</p>
+        {% endif %}
+
+        {% for categoria in categories %}
+            <div class="input-field">
+                <p>{{ categoria.nombre }}</p>
+            </div>
+        {% endfor %}
+
         <div class="input-field">
             <a href="{{ url_for('inicio') }}"><button>Volver al inicio</button></a>
         </div>
