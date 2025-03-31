@@ -32,13 +32,10 @@ class Product(db.Model):
 
     category = db.relationship('Category', backref=db.backref('products', lazy=True))
 
-@app.before_first_request
+@app.before_request
 def create_tables():
     db.create_all()
 
-# ---------------------------
-# Rutas principales
-# ---------------------------
 @app.route('/')
 def goto_inicio():
     # Podrías redirigir a /inicio o renderizar directamente un index.html
@@ -49,9 +46,6 @@ def inicio():
     # Renderiza una plantilla HTML llamada inicio.html
     return render_template('inicio.html')
 
-# ---------------------------
-# Registro de usuarios
-# ---------------------------
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -78,9 +72,6 @@ def register():
     # Si es GET, renderizamos el formulario de registro
     return render_template('register.html')
 
-# ---------------------------
-# Login de usuarios
-# ---------------------------
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -100,9 +91,6 @@ def login():
     # Si es GET, renderizamos el formulario de login
     return render_template('login.html')
 
-# ---------------------------
-# Gestión de categorías
-# ---------------------------
 @app.route('/categorias', methods=['GET', 'POST'])
 def categorias():
     if request.method == 'POST':
@@ -121,9 +109,6 @@ def categorias():
     all_categories = Category.query.all()
     return render_template('categorias.html', categories=all_categories)
 
-# ---------------------------
-# Gestión de productos
-# ---------------------------
 @app.route('/productos', methods=['GET', 'POST'])
 def productos():
     if request.method == 'POST':
@@ -188,9 +173,6 @@ def productos():
     categories = Category.query.all()
     return render_template('productos.html', products=products, categories=categories)
 
-# ---------------------------
-# Carrito de compra (en la sesión)
-# ---------------------------
 @app.route('/carrito', methods=['GET', 'POST'])
 def carrito():
     if 'cart' not in session:
@@ -237,9 +219,6 @@ def carrito():
 
     return render_template('carrito.html', cart_items=cart_items, total=total)
 
-# ---------------------------
-# Proceso de compra
-# ---------------------------
 @app.route('/compra', methods=['POST'])
 def compra():
     if 'cart' not in session or not session['cart']:
