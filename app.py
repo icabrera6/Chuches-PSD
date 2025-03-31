@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, abort
 from flask_sqlalchemy import SQLAlchemy
 import os
 
@@ -38,12 +38,12 @@ def create_tables():
 
 @app.route('/')
 def goto_inicio():
-    # Podrías redirigir a /inicio o renderizar directamente un index.html
     return redirect(url_for('inicio'))
 
 @app.route('/inicio')
 def inicio():
-    # Renderiza una plantilla HTML llamada inicio.html
+    if not session.get('user_id'):
+        abort(403)
     return render_template('inicio.html')
 
 # Registro de usuario
