@@ -4,17 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chuches PSD | Login</title>
-    <link rel="stylesheet" href="../static/css/styles.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
     <div class="wrapper">
-        <form action="#">
+        <form action="{{ url_for('login') }}" method="POST">
             <h2>🍬🍭 LOGIN 🍭🍬</h2>
             <div class="input-field">
-                <input type="email" placeholder="Email" required>
+                <input type="email" name="email" placeholder="Email" required>
             </div>
             <div class="input-field">
-                <input type="password" placeholder="Contraseña" required>
+                <input type="password" name="password" placeholder="Contraseña" required>
             </div>
             <div class="forget">
                 <label for="remember">
@@ -26,10 +26,9 @@
             <button type="submit">Log In</button>
             <div class="register">
                 <span class="text">No tienes una cuenta?</span>
-                <a href="../register">Registrate</a>
+                <a href="{{ url_for('register') }}">Registrate</a>
             </div>
         </form>
-
     </div>
 </body>
 </html>

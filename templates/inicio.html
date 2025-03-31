@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Inicio - Tienda Online</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+  <header>
+    <h1>Bienvenido a la Tienda Online</h1>
+  </header>
+  <nav>
+    <ul>
+      <li><a href="{{ url_for('register') }}">Registrarse</a></li>
+      <li><a href="{{ url_for('login') }}">Iniciar Sesión</a></li>
+      <li><a href="{{ url_for('productos') }}">Productos</a></li>
+      <li><a href="{{ url_for('categorias') }}">Categorías</a></li>
+    </ul>
+  </nav>
+  <section>
+    <p>Esta es una página de inicio básica para la tienda online. Utiliza el menú de arriba para navegar.</p>
+  </section>
+</body>
+</html>

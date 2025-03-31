@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Registro Exitoso</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+  <header>
+    <h1>{{ usuario }} registrado exitosamente</h1>
+  </header>
+  <section>
+    <button onclick="window.location.href='{{ url_for('inicio') }}'">Volver a Inicio</button>
+  </section>
+</body>
+</html>

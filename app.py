@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, abort
+from flask import Flask, render_template, request, redirect, url_for, session
 from flask_sqlalchemy import SQLAlchemy
 import os
 
@@ -11,7 +11,9 @@ app.secret_key = 'supersecretkey'
 
 db = SQLAlchemy(app)
 
+# ---------------------------
 # Modelos
+# ---------------------------
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(100), unique=True, nullable=False)
@@ -32,47 +34,52 @@ class Product(db.Model):
 
     category = db.relationship('Category', backref=db.backref('products', lazy=True))
 
+# ---------------------------
+# Inicializar tablas
+# ---------------------------
 @app.before_request
 def create_tables():
     db.create_all()
 
+# ---------------------------
+# Rutas principales
+# ---------------------------
 @app.route('/')
 def goto_inicio():
+    # Redirige a /inicio
     return redirect(url_for('inicio'))
 
 @app.route('/inicio')
 def inicio():
-    if not session.get('user_id'):
-        abort(403)
+    # Asegúrate de tener un archivo 'inicio.html' en la carpeta 'templates/'
     return render_template('inicio.html')
 
+# ---------------------------
 # Registro de usuario
+# ---------------------------
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        # Procesar datos del formulario
         email = request.form.get('email')
         password = request.form.get('password')
 
         if not email or not password:
-            # Si falta algún campo, podrías renderizar de nuevo la plantilla con un mensaje de error
             return render_template('register.html', error="Email y contraseña son requeridos")
 
-        # Verificar si ya existe el usuario
         if User.query.filter_by(email=email).first():
             return render_template('register.html', error="El usuario ya existe")
 
-        # Crear el usuario
         user = User(email=email, password=password)
         db.session.add(user)
         db.session.commit()
 
-        # Redirigir a la página de login, por ejemplo
-        return redirect(url_for('login'))
+        return render_template('register_success.html', usuario=email)
 
-    # Si es GET, renderizamos el formulario de registro
     return render_template('register.html')
 
+# ---------------------------
+# Login de usuario
+# ---------------------------
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -89,9 +96,12 @@ def login():
         # Redirigir a inicio (o a donde prefieras)
         return redirect(url_for('inicio'))
 
-    # Si es GET, renderizamos el formulario de login
+    # Si es GET, renderiza el formulario de login
     return render_template('login.html')
 
+# ---------------------------
+# Gestión de categorías
+# ---------------------------
 @app.route('/categorias', methods=['GET', 'POST'])
 def categorias():
     if request.method == 'POST':
@@ -99,17 +109,22 @@ def categorias():
         nombre = request.form.get('nombre')
         if not nombre:
             # Manejar error si hace falta
-            return render_template('categorias.html', error="El nombre es requerido", categories=Category.query.all())
+            return render_template('categorias.html',
+                                   error="El nombre es requerido",
+                                   categories=Category.query.all())
 
         category = Category(nombre=nombre)
         db.session.add(category)
         db.session.commit()
         return redirect(url_for('categorias'))
 
-    # Si es GET, mostramos la lista de categorías
+    # Si es GET, muestra la lista de categorías
     all_categories = Category.query.all()
     return render_template('categorias.html', categories=all_categories)
 
+# ---------------------------
+# Gestión de productos
+# ---------------------------
 @app.route('/productos', methods=['GET', 'POST'])
 def productos():
     if request.method == 'POST':
@@ -136,14 +151,11 @@ def productos():
                                    products=Product.query.all(),
                                    categories=Category.query.all())
 
-        # Si quieres subir imagen
+        # Subida de imagen (opcional)
         imagen = request.files.get('imagen')
         image_path = None
         if imagen:
             filename = imagen.filename
-            # Podrías usar secure_filename si quieres evitar problemas de seguridad
-            # from werkzeug.utils import secure_filename
-            # filename = secure_filename(imagen.filename)
             upload_folder = os.path.join('static', 'imgs')
             os.makedirs(upload_folder, exist_ok=True)
             file_path = os.path.join(upload_folder, filename)
@@ -169,11 +181,14 @@ def productos():
         db.session.commit()
         return redirect(url_for('productos'))
 
-    # Si es GET, listamos productos
+    # Si es GET, listar productos
     products = Product.query.all()
     categories = Category.query.all()
     return render_template('productos.html', products=products, categories=categories)
 
+# ---------------------------
+# Carrito de compra (en la sesión)
+# ---------------------------
 @app.route('/carrito', methods=['GET', 'POST'])
 def carrito():
     if 'cart' not in session:
@@ -202,9 +217,9 @@ def carrito():
 
     # Si es GET, mostramos el carrito
     cart = session['cart']
-    # Convertir la info del carrito a objetos (para mostrar nombre, precio, etc.)
     cart_items = []
     total = 0
+
     for prod_id, qty in cart.items():
         product = Product.query.get(int(prod_id))
         if product:
@@ -220,6 +235,9 @@ def carrito():
 
     return render_template('carrito.html', cart_items=cart_items, total=total)
 
+# ---------------------------
+# Proceso de compra
+# ---------------------------
 @app.route('/compra', methods=['POST'])
 def compra():
     if 'cart' not in session or not session['cart']:
@@ -233,14 +251,13 @@ def compra():
     for prod_id, quantity in cart.items():
         product = Product.query.get(int(prod_id))
         if not product:
-            # Producto no existe
             return redirect(url_for('carrito'))
         if product.stock < quantity:
             # Stock insuficiente
             return redirect(url_for('carrito'))
         total += product.precio * quantity
 
-    # Si todo está correcto, se descuenta el stock
+    # Descontar el stock
     for prod_id, quantity in cart.items():
         product = Product.query.get(int(prod_id))
         product.stock -= quantity
@@ -252,5 +269,8 @@ def compra():
     # Renderizar una página de confirmación de compra
     return render_template('compra_exito.html', total=total)
 
+# ---------------------------
+# Main
+# ---------------------------
 if __name__ == '__main__':
     app.run(debug=True)
