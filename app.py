@@ -46,7 +46,8 @@ def inicio():
     # Renderiza una plantilla HTML llamada inicio.html
     return render_template('inicio.html')
 
-@app.route('/register', methods=['GET', 'POST'])
+# Registro de usuario
+@app.route('/register', methods=['POST'])
 def register():
     if request.method == 'POST':
         # Procesar datos del formulario
