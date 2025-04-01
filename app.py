@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, abort
 from flask_sqlalchemy import SQLAlchemy
 import os
 
@@ -18,6 +18,10 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(100), unique=True, nullable=False)
     password = db.Column(db.String(100), nullable=False)
+    nombre = db.Column(db.String(100), nullable=False)
+    apellidos = db.Column(db.String(100), nullable=False)
+    is_admin = db.Column(db.Boolean, default=False)
+    is_seller = db.Column(db.Boolean, default=False)
 
 class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -42,6 +46,23 @@ def create_tables():
     db.create_all()
 
 # ---------------------------
+# Helpers para roles
+# ---------------------------
+def get_current_user():
+    user_id = session.get('user_id')
+    if user_id:
+        return User.query.get(user_id)
+    return None
+
+def is_admin():
+    user = get_current_user()
+    return user and user.is_admin
+
+def is_seller():
+    user = get_current_user()
+    return user and user.is_seller
+
+# ---------------------------
 # Rutas principales
 # ---------------------------
 @app.route('/')
@@ -51,7 +72,7 @@ def goto_inicio():
 
 @app.route('/inicio')
 def inicio():
-    # Asegúrate de tener un archivo 'inicio.html' en la carpeta 'templates/'
+    # Renderiza la plantilla inicio.html
     return render_template('inicio.html')
 
 # ---------------------------
@@ -60,21 +81,33 @@ def inicio():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
+        # Procesar datos del formulario
         email = request.form.get('email')
         password = request.form.get('password')
+        nombre = request.form.get('nombre')
+        apellidos = request.form.get('apellidos')
 
-        if not email or not password:
-            return render_template('register.html', error="Email y contraseña son requeridos")
+        if not email or not password or not nombre or not apellidos:
+            return render_template('register.html', error="Todos los campos son requeridos")
 
+        # Verificar si ya existe el usuario
         if User.query.filter_by(email=email).first():
             return render_template('register.html', error="El usuario ya existe")
 
-        user = User(email=email, password=password)
+        # Crear el usuario (por defecto is_admin=False, is_seller=False)
+        user = User(
+            email=email,
+            password=password,
+            nombre=nombre,
+            apellidos=apellidos
+        )
         db.session.add(user)
         db.session.commit()
 
+        # Podrías redirigir a una plantilla de éxito o a la página de login
         return render_template('register_success.html', usuario=email)
 
+    # Si es GET, renderiza el formulario de registro
     return render_template('register.html')
 
 # ---------------------------
@@ -93,7 +126,7 @@ def login():
 
         # Guardar el id del usuario en la sesión
         session['user_id'] = user.id
-        # Redirigir a inicio (o a donde prefieras)
+        # Redirigir a inicio
         return redirect(url_for('inicio'))
 
     # Si es GET, renderiza el formulario de login
@@ -108,7 +141,6 @@ def categorias():
         # Procesar formulario para crear categoría
         nombre = request.form.get('nombre')
         if not nombre:
-            # Manejar error si hace falta
             return render_template('categorias.html',
                                    error="El nombre es requerido",
                                    categories=Category.query.all())
@@ -128,7 +160,10 @@ def categorias():
 @app.route('/productos', methods=['GET', 'POST'])
 def productos():
     if request.method == 'POST':
-        # Procesar formulario para crear producto
+        # Solo admin o seller pueden crear productos
+        if not is_admin() and not is_seller():
+            abort(403)  # Sin permisos
+
         nombre = request.form.get('nombre')
         descripcion = request.form.get('descripcion')
         precio = request.form.get('precio')
@@ -185,6 +220,19 @@ def productos():
     products = Product.query.all()
     categories = Category.query.all()
     return render_template('productos.html', products=products, categories=categories)
+
+# ---------------------------
+# Eliminar producto (solo admin)
+# ---------------------------
+@app.route('/productos/delete/<int:product_id>', methods=['POST'])
+def delete_product(product_id):
+    if not is_admin():
+        abort(403)  # Solo admin puede eliminar
+
+    product = Product.query.get_or_404(product_id)
+    db.session.delete(product)
+    db.session.commit()
+    return redirect(url_for('productos'))
 
 # ---------------------------
 # Carrito de compra (en la sesión)
