@@ -1,19 +1,15 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chuches PSD | Compra realizada</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <meta charset="UTF-8">
+  <title>Compra Exitosa</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
-    <div class="wrapper">
-        <h2>✅ ¡Compra realizada con éxito! ✅</h2>
-        <p>Importe total pagado: {{ total }}€</p>
-
-        <div class="input-field">
-            <a href="{{ url_for('inicio') }}"><button>Volver al inicio</button></a>
-        </div>
-    </div>
+  <div class="wrapper">
+    <h2>¡Compra Realizada con Éxito!</h2>
+    <p>Total pagado: {{ total }}€</p>
+    <a href="{{ url_for('inicio') }}"><button>Volver al Inicio</button></a>
+  </div>
 </body>
 </html>

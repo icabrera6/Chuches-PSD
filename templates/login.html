@@ -1,34 +1,22 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chuches PSD | Login</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <meta charset="UTF-8">
+  <title>Chuches PSD | Login</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
-    <div class="wrapper">
-        <form action="{{ url_for('login') }}" method="POST">
-            <h2>🍬🍭 LOGIN 🍭🍬</h2>
-            <div class="input-field">
-                <input type="email" name="email" placeholder="Email" required>
-            </div>
-            <div class="input-field">
-                <input type="password" name="password" placeholder="Contraseña" required>
-            </div>
-            <div class="forget">
-                <label for="remember">
-                    <input type="checkbox" id="remember">
-                    <span class="text">Recuerdame</span>
-                </label>
-                <a href="#">Olvidaste tu contraseña?</a>
-            </div>
-            <button type="submit">Log In</button>
-            <div class="register">
-                <span class="text">No tienes una cuenta?</span>
-                <a href="{{ url_for('register') }}">Registrate</a>
-            </div>
-        </form>
-    </div>
+  <div class="wrapper">
+    <form action="{{ url_for('login') }}" method="POST">
+      <h2>Login</h2>
+      {% if error %}
+         <p style="color:red;">{{ error }}</p>
+      {% endif %}
+      <input type="text" name="login" placeholder="Email o Nombre de Usuario" required>
+      <input type="password" name="password" placeholder="Contraseña" required>
+      <button type="submit">Iniciar Sesión</button>
+    </form>
+    <p>¿No tienes una cuenta? <a href="{{ url_for('register') }}">Registrate</a></p>
+  </div>
 </body>
 </html>

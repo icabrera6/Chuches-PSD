@@ -1,29 +1,48 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chuches PSD | Inicio</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <meta charset="UTF-8">
+  <title>Chuches PSD | Inicio</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
-    <div class="wrapper">
-        <h2>🍬🍭 BIENVENID@ A CHUCHES PSD 🍭🍬</h2>
-        <div class="input-field">
-            <a href="{{ url_for('register') }}"><button>Registrarse</button></a>
-        </div>
-        <div class="input-field">
-            <a href="{{ url_for('login') }}"><button>Iniciar Sesión</button></a>
-        </div>
-        <div class="input-field">
-            <a href="{{ url_for('productos') }}"><button>Ver Productos</button></a>
-        </div>
-        <div class="input-field">
-            <a href="{{ url_for('categorias') }}"><button>Ver Categorías</button></a>
-        </div>
-        <div class="input-field">
-            <a href="{{ url_for('carrito') }}"><button>Ver Carrito</button></a>
-        </div>
-    </div>
+  <div class="wrapper">
+    <h1>Chuches PSD</h1>
+    {% if current_user %}
+      <p>Bienvenido, {{ current_user.nombre }}!</p>
+      <a href="{{ url_for('logout') }}"><button>Logout</button></a>
+    {% else %}
+      <a href="{{ url_for('login') }}"><button>Identificarse</button></a>
+      <p><small>¿No tienes cuenta? <a href="{{ url_for('register') }}">Regístrate</a></small></p>
+    {% endif %}
+    <hr>
+    <h2>Productos</h2>
+    <ul>
+      {% for product in products %}
+        <li>
+          <strong>{{ product.nombre }}</strong> - {{ product.descripcion }} - {{ product.precio }}€ - Stock: {{ product.stock }}
+          {% if current_user and current_user.is_seller and product.seller_id == current_user.id %}
+            <form action="{{ url_for('delete_product', product_id=product.id) }}" method="POST" style="display:inline;">
+              <button type="submit">Eliminar</button>
+            </form>
+          {% endif %}
+        </li>
+      {% else %}
+        <li>No hay productos disponibles.</li>
+      {% endfor %}
+    </ul>
+    {% if current_user and current_user.is_seller %}
+      <hr>
+      <h2>Agregar Producto</h2>
+      <form action="{{ url_for('inicio') }}" method="POST" enctype="multipart/form-data">
+        <input type="text" name="nombre" placeholder="Nombre del producto" required><br>
+        <textarea name="descripcion" placeholder="Descripción" required></textarea><br>
+        <input type="text" name="precio" placeholder="Precio" required><br>
+        <input type="text" name="stock" placeholder="Stock" required><br>
+        <input type="file" name="imagen"><br>
+        <button type="submit">Agregar Producto</button>
+      </form>
+    {% endif %}
+  </div>
 </body>
 </html>
