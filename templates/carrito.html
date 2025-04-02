@@ -1,30 +1,27 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chuches PSD | Carrito</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <meta charset="UTF-8">
+  <title>Carrito</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
-    <div class="wrapper">
-        <h2>🛒 Tu carrito 🛒</h2>
-
+  <div class="wrapper">
+    <h2>Carrito de Compras</h2>
+    {% if cart_items %}
+      <ul>
         {% for item in cart_items %}
-            <div class="input-field">
-                <p>{{ item.nombre }} x{{ item.cantidad }} = {{ item.subtotal }}€</p>
-            </div>
+          <li>{{ item.nombre }} x{{ item.cantidad }} = {{ item.subtotal }}€</li>
         {% endfor %}
-
-        <h3>Total: {{ total }}€</h3>
-
-        <form action="{{ url_for('compra') }}" method="POST">
-            <button type="submit">Finalizar compra</button>
-        </form>
-
-        <div class="input-field">
-            <a href="{{ url_for('inicio') }}"><button>Volver al inicio</button></a>
-        </div>
-    </div>
+      </ul>
+      <h3>Total: {{ total }}€</h3>
+      <form action="{{ url_for('compra') }}" method="POST">
+        <button type="submit">Finalizar Compra</button>
+      </form>
+    {% else %}
+      <p>El carrito está vacío</p>
+    {% endif %}
+    <a href="{{ url_for('inicio') }}"><button>Volver al Inicio</button></a>
+  </div>
 </body>
 </html>
