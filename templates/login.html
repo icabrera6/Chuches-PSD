@@ -1,34 +1,23 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chuches PSD | Login</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <title>Document</title>
+    <link rel="stylesheet" href="../static/css/styles.css">
 </head>
 <body>
-    <div class="wrapper">
-        <form action="{{ url_for('login') }}" method="POST">
-            <h2>🍬🍭 LOGIN 🍭🍬</h2>
-            <div class="input-field">
-                <input type="email" name="email" placeholder="Email" required>
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="#" class="navbar-logo">Chuches-PSD</a>
+            <div class="navbar-search">
+                <input type="text" placeholder="Buscar...">
             </div>
-            <div class="input-field">
-                <input type="password" name="password" placeholder="Contraseña" required>
-            </div>
-            <div class="forget">
-                <label for="remember">
-                    <input type="checkbox" id="remember">
-                    <span class="text">Recuerdame</span>
-                </label>
-                <a href="#">Olvidaste tu contraseña?</a>
-            </div>
-            <button type="submit">Log In</button>
-            <div class="register">
-                <span class="text">No tienes una cuenta?</span>
-                <a href="{{ url_for('register') }}">Registrate</a>
-            </div>
-        </form>
-    </div>
+            <ul class="navbar-menu">
+                <li><a href="#">Inicio de sesión</a></li>
+                <li><a href="#">Ver carrito</a></li>
+            </ul>
+        </div>
+    </nav>
 </body>
 </html>
