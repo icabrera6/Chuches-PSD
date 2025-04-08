@@ -18,8 +18,10 @@
                 {% if current_user %}
                     {% if current_user.is_seller %}
                         <li><a href="{{ url_for('inventario') }}">Inventario</a></li>
-                        <li><a href="{{ url_for('logout') }}">Cerrar sesión</a></li>
+                    {% else %}
                         <li><a href="{{ url_for('carrito') }}">Ver carrito</a></li>
+                    {% endif %}
+                    <li><a href="{{ url_for('logout') }}">Cerrar sesión</a></li>
                 {% else %}
                     <li><a href="{{ url_for('login') }}">Inicio de sesión</a></li>
                 {% endif %}
