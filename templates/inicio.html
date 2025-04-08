@@ -15,10 +15,45 @@
                 <input type="text" placeholder="Buscar...">
             </div>
             <ul class="navbar-menu">
-                <li><a href="{{url_for('login')}}">Inicio de sesión</a></li>
-                <li><a href="#">Ver carrito</a></li>
+                {% if current_user %}
+                    {% if current_user.is_seller %}
+                        <li><a href="{{ url_for('inventario') }}">Inventario</a></li>
+                    {% endif %}
+                    <li><a href="{{ url_for('logout') }}">Cerrar sesión</a></li>
+                    <li><a href="{{ url_for('carrito') }}">Ver carrito</a></li>
+                {% else %}
+                    <li><a href="{{ url_for('login') }}">Inicio de sesión</a></li>
+                {% endif %}
             </ul>
         </div>
     </nav>
+
+    <!-- Mostrar mensajes flash -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                    <div class="flash-message {{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <div class="products">
+        <h2>Productos en Venta</h2>
+        {% for product in products %}
+            <div class="product">
+                <h3>{{ product.nombre }}</h3>
+                <p>{{ product.descripcion }}</p>
+                <p>Precio: {{ product.precio }}€</p>
+                <p>Stock: {{ product.stock }}</p>
+                {% if product.image_path %}
+                    <img src="{{ url_for('static', filename=product.image_path) }}" alt="{{ product.nombre }}" width="200">
+                {% endif %}
+            </div>
+        {% else %}
+            <p>No hay productos disponibles.</p>
+        {% endfor %}
+    </div>
 </body>
 </html>

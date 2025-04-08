@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventario</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="wrapper">
+        <h2>Inventario</h2>
+        <ul>
+            {% for product in products %}
+                <li>
+                    <strong>{{ product.nombre }}</strong> - {{ product.descripcion }} - {{ product.precio }}€ - Stock: {{ product.stock }}
+                    {% if product.image_path %}
+                        <br><img src="{{ url_for('static', filename=product.image_path) }}" alt="{{ product.nombre }}" width="150">
+                    {% endif %}
+                    <form action="{{ url_for('delete_product', product_id=product.id) }}" method="POST" style="display:inline;">
+                        <button type="submit">Eliminar</button>
+                    </form>
+                </li>
+            {% endfor %}
+        </ul>
+        <hr>
+        <h2>Agregar Producto</h2>
+        <form action="{{ url_for('inventario') }}" method="POST">
+            <input type="text" name="nombre" placeholder="Nombre del producto" required><br>
+            <textarea name="descripcion" placeholder="Descripción" required></textarea><br>
+            <input type="text" name="precio" placeholder="Precio" required><br>
+            <input type="text" name="stock" placeholder="Stock" required><br>
+            <label for="imagen">Elige una imagen:</label>
+            <select name="imagen" id="imagen" required>
+                {% for i in range(1, 21) %}
+                    <option value="producto{{ i }}.png">Producto{{ i }}</option>
+                {% endfor %}
+            </select><br>
+            <button type="submit">Agregar Producto</button>
+        </form>
+        <a href="{{ url_for('inicio') }}"><button>Volver al Inicio</button></a>
+    </div>
+</body>
+</html>

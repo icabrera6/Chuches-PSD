@@ -8,13 +8,13 @@
 </head>
 <body>
     <div class="wrapper">
-        <form action="#">
+        <form action="{{ url_for('login') }}" method="POST">
             <h2>🍬🍭 LOGIN 🍭🍬</h2>
             <div class="input-field">
-                <input type="email" placeholder="Email" required>
+                <input type="email" name="login" placeholder="Email" required>
             </div>
             <div class="input-field">
-                <input type="password" placeholder="Contraseña" required>
+                <input type="password" name="password" placeholder="Contraseña" required>
             </div>
             <div class="forget">
                 <label for="remember">

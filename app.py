@@ -43,6 +43,43 @@ class Product(db.Model):
 def create_tables():
     db.create_all()
 
+@app.before_request
+def create_test_users():
+    # Usuario admin y vendedor
+    if not User.query.filter_by(email='admin_seller@example.com').first():
+        user = User(
+            email='admin_seller@example.com',
+            password='pass',
+            nombre='AdminSeller',
+            apellidos='Test',
+            is_admin=True,
+            is_seller=True
+        )
+        db.session.add(user)
+    # Usuario solo admin
+    if not User.query.filter_by(email='admin@example.com').first():
+        user = User(
+            email='admin@example.com',
+            password='pass',
+            nombre='Admin',
+            apellidos='Test',
+            is_admin=True,
+            is_seller=False
+        )
+        db.session.add(user)
+    # Usuario solo vendedor
+    if not User.query.filter_by(email='seller@example.com').first():
+        user = User(
+            email='seller@example.com',
+            password='pass',
+            nombre='Seller',
+            apellidos='Test',
+            is_admin=False,
+            is_seller=True
+        )
+        db.session.add(user)
+    db.session.commit()
+
 # ---------------------------
 # Helpers para roles y sesión
 # ---------------------------
@@ -113,6 +150,52 @@ def inicio():
     return render_template('inicio.html', products=products)
 
 # ---------------------------
+# Inventario del vendedor
+# ---------------------------
+@app.route('/inventario', methods=['GET', 'POST'])
+def inventario():
+    if not is_seller():
+        abort(403)
+
+    if request.method == 'POST':
+        nombre = request.form.get('nombre')
+        descripcion = request.form.get('descripcion')
+        precio = request.form.get('precio')
+        stock = request.form.get('stock')
+        if not all([nombre, descripcion, precio, stock]):
+            flash("Todos los campos son requeridos para agregar un producto.")
+            return redirect(url_for('inventario'))
+        try:
+            precio = float(precio)
+            stock = int(stock)
+        except ValueError:
+            flash("Precio debe ser numérico y stock debe ser entero.")
+            return redirect(url_for('inventario'))
+        # Se elimina el file upload y se reemplaza por lectura de la imagen seleccionada:
+        selected_image = request.form.get('imagen')
+        image_path = None
+        if selected_image:
+            image_path = os.path.join('imgs', selected_image)
+        current_user = get_current_user()
+        product = Product(
+            nombre=nombre,
+            descripcion=descripcion,
+            precio=precio,
+            stock=stock,
+            image_path=image_path,
+            seller_id=current_user.id
+        )
+        db.session.add(product)
+        db.session.commit()
+        flash("Producto agregado exitosamente.")
+        return redirect(url_for('inventario'))
+
+    # Obtener productos del vendedor actual
+    current_user = get_current_user()
+    products = Product.query.filter_by(seller_id=current_user.id).all()
+    return render_template('inventario.html', products=products)
+
+# ---------------------------
 # Registro de usuario
 # ---------------------------
 @app.route('/register', methods=['GET', 'POST'])
@@ -139,19 +222,19 @@ def register():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        # El campo 'login' acepta email o nombre de usuario
         login_value = request.form.get('login')
         password = request.form.get('password')
         user = None
-        if '@' in login_value:
+        if login_value and '@' in login_value:
             user = User.query.filter_by(email=login_value, password=password).first()
         else:
             user = User.query.filter_by(nombre=login_value, password=password).first()
         if user:
             session['user_id'] = user.id
+            flash(f'Bienvenido, {user.nombre}!', 'success')
             return redirect(url_for('inicio'))
         else:
-            flash('Credenciales incorrectas')
+            flash('Credenciales incorrectas', 'error')
             return redirect(url_for('login'))
     return render_template('login.html')
 
