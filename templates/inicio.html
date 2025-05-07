@@ -42,19 +42,24 @@
     <div class="products">
         <h2>Productos en Venta</h2>
         {% for product in products %}
-            <div class="product">
-                <h3>{{ product.nombre }}</h3>
-                <p>{{ product.descripcion }}</p>
-                <p>Precio: {{ product.precio }}€</p>
-                <p>Stock: {{ product.stock }}</p>
-                {% if product.image_path %}
-                    <img src="{{ url_for('static', filename=product.image_path) }}" alt="{{ product.nombre }}" width="200">
-                {% endif %}
-            </div>
+          <div class="product">
+            <h3>{{ product.nombre }}</h3>
+            <p>{{ product.descripcion }}</p>
+            <p>Precio: {{ product.precio }}€</p>
+            <p>Stock: {{ product.stock }}</p>
+            {% if product.image_path %}
+              <img src="{{ url_for('static', filename=product.image_path) }}" alt="{{ product.nombre }}" width="200">
+            {% endif %}
+            <form action="{{ url_for('carrito') }}" method="POST">
+              <input type="hidden" name="product_id" value="{{ product.id }}">
+              <input type="hidden" name="quantity" value="1">
+              <button type="submit">Añadir al carrito</button>
+            </form>
+          </div>
         {% else %}
-            <p>No hay productos disponibles.</p>
+          <p>No hay productos disponibles.</p>
         {% endfor %}
-    </div>
+      </div>
     <section class="container" style="padding: 0;">
         <div class="slider-wrapper">
             <div class="slider">

@@ -31,9 +31,12 @@
             <input type="text" name="stock" placeholder="Stock" required><br>
             <label for="imagen">Elige una imagen:</label>
             <select name="imagen" id="imagen" required>
-                {% for i in range(1, 21) %}
-                    <option value="producto{{ i }}.png">Producto{{ i }}</option>
-                {% endfor %}
+              <option value="Bombones.png">Bombones</option>
+              <option value="Brownies.png">Brownies</option>
+              <option value="Caramelos.png">Caramelos</option>
+              <option value="Cookies.png">Cookies</option>
+              <option value="Gominolas.png">Gominolas</option>
+              <option value="Nubes.png">Nubes</option>
             </select><br>
             <button type="submit">Agregar Producto</button>
         </form>
