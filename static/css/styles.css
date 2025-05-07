@@ -607,12 +607,11 @@ button:hover {
 
 .flash-messages {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    text-align: center;
-    z-index: 9999;
-    padding: 10px;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1100;
+    pointer-events: none;
 }
 .flash-message {
     display: inline-block;
@@ -620,6 +619,9 @@ button:hover {
     padding: 10px 20px;
     border-radius: 4px;
     font-size: 16px;
+    pointer-events: auto;
+    opacity: 1;
+    transition: opacity 1s ease;
 }
 .flash-message.success {
     background-color: #d4edda;
