@@ -1,86 +1,49 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chuches PSD | Inicio</title>
-    <link rel="icon" href="../static/imgs/logo_chuchesPSD.png" type="image/png">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <meta charset="UTF-8">
+  <title>Chuches PSD | Inicio</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <link rel="icon" href="../static/imgs/logo_chuchesPSD.png" type="image/png">
 </head>
 <body>
-    <nav class="navbar">
-        <div class="navbar-container">
-            <a href="#" class="navbar-logo"><img src="../static/imgs/logo_chuchesPSD.png" alt="Logo" height="50"></a>
-            <div class="navbar-search">
-                <input type="text" placeholder="Buscar...">
-            </div>
-            <ul class="navbar-menu">
-                <li><a href="{{url_for('login')}}">Inicio de sesión</a></li>
-                {% if user %} <!-- Si el usuario está autenticado -->
-                    <li><a href="{{url_for('logout')}}">Cerrar sesión</a></li>
-                    <li><a href="#">Ver carrito</a></li>
-                {% else %}
-                    <li><a href="{{url_for('register')}}">Registrarse</a></li>
-                {% endif %}
-            </ul>
-        </div>
-    </nav>
-
-    <section class="container" style="padding: 0;">
-        <div class="slider-wrapper">
-            <div class="slider">
-                <img id="slide-1" src="../static/imgs/banner1.jpg" alt="Anuncio 1" />
-                <img id="slide-2" src="../static/imgs/banner2.jpg" alt="Anuncio 2" />
-                <img id="slide-3" src="../static/imgs/banner3.jpg" alt="Anuncio 3" />
-            </div>
-            <div class="slider-nav">
-                <a href="#slide-1"></a>
-                <a href="#slide-2"></a>
-                <a href="#slide-3"></a>
-            </div>
-        </div>
-    </section>
-
-    <section class="products">
-		<div class="all-products">
-			<div class="product">
-				<img src="../static/imgs/Cookies.png">
-				<div class="product-info">
-					<h4 class="product-title">Cookies</h4>
-					<p class="product-price">15€</p>
-					<a class="product-btn" href="#">Añadir al carrito</a>
-
-				</div>
-			</div>
-			<div class="product">
-				<img src="../static/imgs/Brownies.png">
-				<div class="product-info">
-					<h4 class="product-title">Brownies</h4>
-					<p class="product-price">20€</p>
-					<a class="product-btn" href="#">Añadir al carrito</a>
-
-				</div>
-			</div>
-			<div class="product">
-				<img src="../static/imgs/Chuches.png">
-				<div class="product-info">
-					<h4 class="product-title">Gominolas</h4>
-					<p class="product-price">10€</p>
-					<a class="product-btn" href="#">Añadir al carrito</a>
-
-				</div>
-			</div>
-			<div class="product">
-				<img src="ipad-pro.jpg">
-				<div class="product-info">
-					<h4 class="product-title">Caja misteriosa</h4>
-					<p class="product-price">629€</p>
-					<a class="product-btn" href="#">Añadir al carrito</a>
-
-				</div>
-			</div>
-		</div>
-	</section>
-
+  <div class="wrapper">
+    <h1>Chuches PSD</h1>
+    {% if current_user %}
+      <p>Bienvenido, {{ current_user.nombre }}!</p>
+      <a href="{{ url_for('logout') }}"><button>Logout</button></a>
+    {% else %}
+      <a href="{{ url_for('login') }}"><button>Identificarse</button></a>
+      <p><small>¿No tienes cuenta? <a href="{{ url_for('register') }}">Regístrate</a></small></p>
+    {% endif %}
+    <hr>
+    <h2>Productos</h2>
+    <ul>
+      {% for product in products %}
+        <li>
+          <strong>{{ product.nombre }}</strong> - {{ product.descripcion }} - {{ product.precio }}€ - Stock: {{ product.stock }}
+          {% if current_user and current_user.is_seller and product.seller_id == current_user.id %}
+            <form action="{{ url_for('delete_product', product_id=product.id) }}" method="POST" style="display:inline;">
+              <button type="submit">Eliminar</button>
+            </form>
+          {% endif %}
+        </li>
+      {% else %}
+        <li>No hay productos disponibles.</li>
+      {% endfor %}
+    </ul>
+    {% if current_user and current_user.is_seller %}
+      <hr>
+      <h2>Agregar Producto</h2>
+      <form action="{{ url_for('inicio') }}" method="POST" enctype="multipart/form-data">
+        <input type="text" name="nombre" placeholder="Nombre del producto" required><br>
+        <textarea name="descripcion" placeholder="Descripción" required></textarea><br>
+        <input type="text" name="precio" placeholder="Precio" required><br>
+        <input type="text" name="stock" placeholder="Stock" required><br>
+        <input type="file" name="imagen"><br>
+        <button type="submit">Agregar Producto</button>
+      </form>
+    {% endif %}
+  </div>
 </body>
 </html>
