@@ -1,95 +1,76 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chuches PSD | Inicio</title>
-    <link rel="icon" href="../static/imgs/logo_chuchesPSD.png" type="image/png">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chuches PSD | Inicio</title>
+  <link rel="icon" href="../static/imgs/logo_chuchesPSD.png" type="image/png">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
-    <nav class="navbar">
-        <div class="navbar-container">
-            <a href="#" class="navbar-logo"><img src="../static/imgs/logo_chuchesPSD.png" alt="Logo" height="50"></a>
-            <div class="navbar-search">
-                <input type="text" placeholder="Buscar...">
-            </div>
-            <ul class="navbar-menu">
-                {% if current_user %}
-                  {% if current_user.is_admin %}
-                    <li><a href="{{ url_for('inventario') }}">Inventario</a></li>
-                    <li><a href="{{ url_for('carrito') }}">Ver carrito</a></li>
-                  {% elif current_user.is_seller %}
-                    <li><a href="{{ url_for('inventario') }}">Inventario</a></li>
-                  {% else %}
-                    <li><a href="{{ url_for('carrito') }}">Ver carrito</a></li>
-                  {% endif %}
-                  <li><a href="{{ url_for('logout') }}">Cerrar sesión</a></li>
-                {% else %}
-                  <li><a href="{{ url_for('login') }}">Inicio de sesión</a></li>
-                {% endif %}
-              </ul>
-        </div>
-    </nav>
-    <!-- Mostrar mensajes flash -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            <div class="flash-messages">
-                {% for category, message in messages %}
-                    <div class="flash-message {{ category }}">{{ message }}</div>
-                {% endfor %}
-            </div>
-        {% endif %}
-    {% endwith %}
-
-    <div class="products">
-        <br>
-        <br>
-        <h2>Productos en Venta</h2>
-        {% for product in products %}
-          <div class="product">
-            <h3>{{ product.nombre }}</h3>
-            <p>{{ product.descripcion }}</p>
-            <p>Precio: {{ product.precio }}€</p>
-            <p>Stock: {{ product.stock }}</p>
-            {% if product.image_path %}
-              <img src="{{ url_for('static', filename=product.image_path) }}" alt="{{ product.nombre }}" width="200">
-            {% endif %}
-            <form action="{{ url_for('carrito') }}" method="POST">
-              <input type="hidden" name="product_id" value="{{ product.id }}">
-              <input type="hidden" name="quantity" value="1">
-              <button type="submit">Añadir al carrito</button>
-            </form>
-          </div>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-container">
+      <a href="#" class="navbar-logo">
+        <img src="../static/imgs/logo_chuchesPSD.png" alt="Logo" height="50">
+      </a>
+      <div class="navbar-search">
+        <input type="text" placeholder="Buscar...">
+      </div>
+      <ul class="navbar-menu">
+        {% if current_user %}
+          {% if current_user.is_admin %}
+            <li><a href="{{ url_for('inventario') }}">Inventario</a></li>
+            <li><a href="{{ url_for('carrito') }}">Ver carrito</a></li>
+          {% elif current_user.is_seller %}
+            <li><a href="{{ url_for('inventario') }}">Inventario</a></li>
+          {% else %}
+            <li><a href="{{ url_for('carrito') }}">Ver carrito</a></li>
+          {% endif %}
+          <li><a href="{{ url_for('logout') }}">Cerrar sesión</a></li>
         {% else %}
-          <p>No hay productos disponibles.</p>
+          <li><a href="{{ url_for('login') }}">Inicio de sesión</a></li>
+        {% endif %}
+      </ul>
+    </div>
+  </nav>
+  
+  <!-- Flash messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-messages">
+        {% for category, message in messages %}
+          <div class="flash-message {{ category }}">{{ message }}</div>
         {% endfor %}
       </div>
-    <section class="container" style="padding: 0;">
-        <div class="slider-wrapper">
-            <div class="slider">
-                <img id="slide-1" src="../static/imgs/banner1.jpg" alt="Anuncio 1" />
-                <img id="slide-2" src="../static/imgs/banner2.jpg" alt="Anuncio 2" />
-                <img id="slide-3" src="../static/imgs/banner3.jpg" alt="Anuncio 3" />
-            </div>
-            <div class="slider-nav">
-                <a href="#slide-1"></a>
-                <a href="#slide-2"></a>
-                <a href="#slide-3"></a>
-            </div>
-        </div>
-    </section>
-    <script>
-        document.addEventListener("DOMContentLoaded", function(){
-          setTimeout(function(){
-            const flashContainer = document.querySelector('.flash-messages');
-            if(flashContainer){
-              flashContainer.style.opacity = '0';
-              // Elimina el contenedor después de la transición (1 seg extra)
-              setTimeout(() => flashContainer.remove(), 1000);
-            }
-          }, 3000); // 3000 ms = 3 seg; puedes ajustarlo a 5000 si prefieres 5 seg
-        });
-      </script>
+    {% endif %}
+  {% endwith %}
+  
+  <!-- Productos en venta -->
+  <div class="products">
+    <br>
+    <br>
+    <h2>Productos en Venta</h2>
+    {% for product in products %}
+      <div class="product">
+        <h3>{{ product.nombre }}</h3>
+        <p>{{ product.descripcion }}</p>
+        <p>Precio: {{ product.precio }}€</p>
+        <p>Stock: {{ product.stock }}</p>
+        {% if product.image_path %}
+          <img src="{{ url_for('static', filename=product.image_path) }}" alt="{{ product.nombre }}" width="200">
+        {% endif %}
+        <form action="{{ url_for('carrito') }}" method="POST">
+          <input type="hidden" name="product_id" value="{{ product.id }}">
+          <input type="hidden" name="quantity" value="1">
+          <button type="submit">Añadir al carrito</button>
+        </form>
+      </div>
+    {% else %}
+      <p>No hay productos disponibles.</p>
+    {% endfor %}
+  </div>
+  
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>

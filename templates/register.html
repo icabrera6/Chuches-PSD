@@ -6,6 +6,16 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
+  <!-- Flash messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-messages">
+        {% for category, message in messages %}
+          <div class="flash-message {{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
   <div class="wrapper">
     <form action="{{ url_for('register') }}" method="POST">
       <h2>Registro</h2>
@@ -20,5 +30,6 @@
     </form>
     <p>¿Ya tienes una cuenta? <a href="{{ url_for('login') }}">Iniciar Sesión</a></p>
   </div>
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>

@@ -6,6 +6,16 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
+  <!-- Flash messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-messages">
+        {% for category, message in messages %}
+          <div class="flash-message {{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
   <div class="wrapper">
     <h2>Carrito de Compras</h2>
     {% if cart_items %}
@@ -38,32 +48,6 @@
     {% endif %}
     <a href="{{ url_for('inicio') }}"><button>Volver al Inicio</button></a>
   </div>
-  
-  <script>
-    document.addEventListener('DOMContentLoaded', function(){
-      document.querySelectorAll('.quantity-form').forEach(function(form){
-        const decrementBtn = form.querySelector('.decrement-btn');
-        const incrementBtn = form.querySelector('.increment-btn');
-        const quantityField = form.querySelector('input[name="quantity"]');
-        const stock = parseInt(incrementBtn.getAttribute('data-stock'));
-        
-        decrementBtn.addEventListener('click', function(){
-          let current = parseInt(quantityField.value);
-          if(current > 1){
-            quantityField.value = current - 1;
-            form.submit();
-          }
-        });
-        
-        incrementBtn.addEventListener('click', function(){
-          let current = parseInt(quantityField.value);
-          if(current < stock){
-            quantityField.value = current + 1;
-            form.submit();
-          }
-        });
-      });
-    });
-  </script>
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>
