@@ -602,3 +602,30 @@ button:hover {
 .products {
     margin-top: 40vh; /* Increased margin to create more space */
 }
+
+/* Mensajes flash de error y alerta */
+
+.flash-messages {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    z-index: 9999;
+    padding: 10px;
+}
+.flash-message {
+    display: inline-block;
+    margin: 5px;
+    padding: 10px 20px;
+    border-radius: 4px;
+    font-size: 16px;
+}
+.flash-message.success {
+    background-color: #d4edda;
+    color: #155724;
+}
+.flash-message.error {
+    background-color: #f8d7da;
+    color: #721c24;
+}

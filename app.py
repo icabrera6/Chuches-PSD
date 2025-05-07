@@ -45,17 +45,6 @@ def create_tables():
 
 @app.before_request
 def create_test_users():
-    # Usuario admin y vendedor
-    if not User.query.filter_by(email='admin_seller@example.com').first():
-        user = User(
-            email='admin_seller@example.com',
-            password='pass',
-            nombre='AdminSeller',
-            apellidos='Test',
-            is_admin=True,
-            is_seller=True
-        )
-        db.session.add(user)
     # Usuario solo admin
     if not User.query.filter_by(email='admin@example.com').first():
         user = User(
@@ -67,6 +56,7 @@ def create_test_users():
             is_seller=False
         )
         db.session.add(user)
+
     # Usuario solo vendedor
     if not User.query.filter_by(email='seller@example.com').first():
         user = User(
@@ -78,6 +68,19 @@ def create_test_users():
             is_seller=True
         )
         db.session.add(user)
+
+    # Usuario comprador
+    if not User.query.filter_by(email='comprador@example.com').first():
+        user = User(
+            email='comprador@example.com',
+            password='pass',
+            nombre='Comprador',
+            apellidos='Test',
+            is_admin=False,
+            is_seller=False
+        )
+        db.session.add(user)
+
     db.session.commit()
 
 # ---------------------------
@@ -297,7 +300,8 @@ def carrito():
                 'nombre': product.nombre,
                 'cantidad': qty,
                 'precio_unit': product.precio,
-                'subtotal': subtotal
+                'subtotal': subtotal,
+                'stock': product.stock   # Agregado
             })
             total += subtotal
     return render_template('carrito.html', cart_items=cart_items, total=total)
@@ -305,23 +309,51 @@ def carrito():
 # ---------------------------
 # Proceso de compra
 # ---------------------------
-@app.route('/compra', methods=['POST'])
+@app.route('/compra', methods=['GET','POST'])
 def compra():
     if 'cart' not in session or not session['cart']:
         return redirect(url_for('inicio'))
     cart = session['cart']
     total = 0.0
+    # Agrega 'stock' a cada ítem y revisa que la cantidad no supere el stock
     for prod_id, quantity in cart.items():
         product = Product.query.get(int(prod_id))
         if not product or product.stock < quantity:
-            return redirect(url_for('inicio'))
+            flash(f"El producto {product.nombre if product else 'desconocido'} no tiene stock suficiente.", 'error')
+            return redirect(url_for('carrito'))
         total += product.precio * quantity
     for prod_id, quantity in cart.items():
         product = Product.query.get(int(prod_id))
         product.stock -= quantity
+        if product.stock <= 0:
+            db.session.delete(product)
     db.session.commit()
-    session['cart'] = {}
+    session['cart'] = {}  # Se limpia el carrito
+    # Redirige a la ruta de compra exitosa pasando el total como parámetro GET
+    return redirect(url_for('compra_exito', total=total))
+
+# ---------------------------
+# Compra exitosa
+# ---------------------------
+@app.route('/compra_exito')
+def compra_exito():
+    total = request.args.get('total', 0)
     return render_template('compra_exito.html', total=total)
+
+# ---------------------------
+# Eliminar producto del carrito
+# ---------------------------
+@app.route('/delete_from_cart', methods=['POST'])
+def delete_from_cart():
+    if 'cart' not in session:
+        session['cart'] = {}
+    product_id = request.form.get('product_id')
+    if product_id:
+        cart = session['cart']
+        cart.pop(product_id, None)
+        session['cart'] = cart
+        flash("Producto eliminado del carrito.", "success")
+    return redirect(url_for('carrito'))
 
 # ---------------------------
 # Main
