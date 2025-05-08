@@ -35,6 +35,15 @@
     </div>
   </nav>
   
+  <!-- Banner Slider -->
+  <section class="slider-wrapper">
+    <div class="slider">
+      <img src="{{ url_for('static', filename='imgs/banner1.jpg') }}" alt="Banner 1">
+      <img src="{{ url_for('static', filename='imgs/banner2.jpg') }}" alt="Banner 2">
+      <img src="{{ url_for('static', filename='imgs/banner3.jpg') }}" alt="Banner 3">
+    </div>
+  </section>
+  
   <!-- Flash messages -->
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
