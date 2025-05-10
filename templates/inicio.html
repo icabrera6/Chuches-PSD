@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chuches PSD | Inicio</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Chuches PSD</h1>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('index') }}">Inicio</a></li>
+                <li><a href="{{ url_for('productos') }}">Productos</a></li>
+                <li><a href="{{ url_for('categorias') }}">Categorías</a></li>
+                <li><a href="{{ url_for('carrito') }}">Carrito</a></li>
+                {% if session.get('user_id') %}
+                    <li><a href="{{ url_for('logout') }}">Cerrar Sesión</a></li>
+                {% else %}
+                    <li><a href="{{ url_for('login') }}">Iniciar Sesión</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    <div class="wrapper">
+        <h2>🍬🍭 BIENVENID@ A CHUCHES PSD 🍭🍬</h2>
+        <div class="input-field">
+            <a href="{{ url_for('register') }}"><button>Registrarse</button></a>
+        </div>
+        <div class="input-field">
+            <a href="{{ url_for('login') }}"><button>Iniciar Sesión</button></a>
+        </div>
+        <div class="input-field">
+            <a href="{{ url_for('productos') }}"><button>Ver Productos</button></a>
+        </div>
+        <div class="input-field">
+            <a href="{{ url_for('categorias') }}"><button>Ver Categorías</button></a>
+        </div>
+        <div class="input-field">
+            <a href="{{ url_for('carrito') }}"><button>Ver Carrito</button></a>
+        </div>
+    </div>
+    <footer>
+        <p>Chuches PSD &copy; 2023</p>
+        <p>Desarrollado por [Tu Nombre]</p>
+</html>
