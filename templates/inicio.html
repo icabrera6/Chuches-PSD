@@ -8,48 +8,11 @@
 </head>
 <body>
 
-
   <div class="wrapper">
     <h1>Chuches PSD</h1>
     {% if current_user %}
       <p>Bienvenido, {{ current_user.nombre }}!</p>
       <a href="{{ url_for('logout') }}"><button>Logout</button></a>
-
-  <!-- Navbar -->
-  <nav class="navbar">
-    <div class="navbar-container">
-      <a href="#" class="navbar-logo">
-        <img src="../static/imgs/logo_chuchesPSD.png" alt="Logo" height="50">
-      </a>
-      <div class="navbar-search">
-        <input type="text" placeholder="Buscar...">
-      </div>
-      <ul class="navbar-menu">
-        {% if current_user %}
-          {% if current_user.is_admin %}
-            <li><a href="{{ url_for('inventario') }}">Inventario</a></li>
-            <li><a href="{{ url_for('carrito') }}">Ver carrito</a></li>
-          {% elif current_user.is_seller %}
-            <li><a href="{{ url_for('inventario') }}">Inventario</a></li>
-          {% else %}
-            <li><a href="{{ url_for('carrito') }}">Ver carrito</a></li>
-          {% endif %}
-          <li><a href="{{ url_for('logout') }}">Cerrar sesión</a></li>
-        {% else %}
-          <li><a href="{{ url_for('login') }}">Inicio de sesión</a></li>
-        {% endif %}
-      </ul>
-    </div>
-  </nav>
-  
-  <!-- Flash messages -->
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      <div class="flash-messages">
-        {% for category, message in messages %}
-          <div class="flash-message {{ category }}">{{ message }}</div>
-        {% endfor %}
-      </div>
     {% endif %}
       
     <!-- Navbar -->
