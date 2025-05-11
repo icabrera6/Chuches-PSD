@@ -1,24 +1,49 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Chuches PSD | Registro</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <meta charset="UTF-8">
+    <title>Registro</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
-  <div class="wrapper">
-    <form action="{{ url_for('register') }}" method="POST">
-      <h2>Registro</h2>
-      {% if error %}
-         <p style="color:red;">{{ error }}</p>
-      {% endif %}
-      <input type="email" name="email" placeholder="Email" required>
-      <input type="password" name="password" placeholder="Contraseña" required>
-      <input type="text" name="nombre" placeholder="Nombre" required>
-      <input type="text" name="apellidos" placeholder="Apellidos" required>
-      <button type="submit">Registrarse</button>
-    </form>
-    <p>¿Ya tienes una cuenta? <a href="{{ url_for('login') }}">Iniciar Sesión</a></p>
-  </div>
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                    <div class="flash-message {{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+    
+    <div class="wrapper">
+        <h2>
+            <span class="emoji">🍭</span>
+            REGISTRO
+            <span class="emoji">🍬</span>
+        </h2>
+        <form action="{{ url_for('register') }}" method="POST">
+            <div class="input-field">
+                <input type="text" name="nombre" placeholder="Nombre de Usuario" required>
+            </div>
+            <div class="input-field">
+                <input type="text" name="apellidos" placeholder="Apellidos" required>
+            </div>
+            <div class="input-field">
+                <input type="email" name="email" placeholder="Correo Electrónico" required>
+            </div>
+            <div class="input-field">
+                <input type="password" name="password" placeholder="Contraseña" required>
+            </div>
+            <button type="submit">Registrarse</button>
+        </form>
+        <div class="register">
+            <p>¿Ya tienes una cuenta? <a href="{{ url_for('login') }}">Inicia sesión aquí</a></p>
+            <a href="{{ url_for('inicio') }}">Volver al inicio</a>
+        </div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>

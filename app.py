@@ -49,7 +49,7 @@ def create_test_users():
     if not User.query.filter_by(email='admin@example.com').first():
         user = User(
             email='admin@example.com',
-            password='pass',
+            password='pass',  # Contraseña en texto plano
             nombre='Admin',
             apellidos='Test',
             is_admin=True,
@@ -61,7 +61,7 @@ def create_test_users():
     if not User.query.filter_by(email='seller@example.com').first():
         user = User(
             email='seller@example.com',
-            password='pass',
+            password='pass',  # Contraseña en texto plano
             nombre='Seller',
             apellidos='Test',
             is_admin=False,
@@ -73,7 +73,7 @@ def create_test_users():
     if not User.query.filter_by(email='comprador@example.com').first():
         user = User(
             email='comprador@example.com',
-            password='pass',
+            password='pass',  # Contraseña en texto plano
             nombre='Comprador',
             apellidos='Test',
             is_admin=False,
@@ -157,10 +157,13 @@ def inicio():
 # ---------------------------
 @app.route('/inventario', methods=['GET', 'POST'])
 def inventario():
-    if not is_seller():
+    # Permitir acceso solo a administradores o vendedores
+    current_user = get_current_user()
+    if not current_user or not (current_user.is_seller or current_user.is_admin):
         abort(403)
 
     if request.method == 'POST':
+        # Validar datos del formulario
         nombre = request.form.get('nombre')
         descripcion = request.form.get('descripcion')
         precio = request.form.get('precio')
@@ -174,28 +177,33 @@ def inventario():
         except ValueError:
             flash("Precio debe ser numérico y stock debe ser entero.")
             return redirect(url_for('inventario'))
-        # Se elimina el file upload y se reemplaza por lectura de la imagen seleccionada:
+        
+        # Leer la imagen seleccionada del formulario
         selected_image = request.form.get('imagen')
         image_path = None
         if selected_image:
             image_path = os.path.join('imgs', selected_image)
-        current_user = get_current_user()
+        
+        # Crear el producto
         product = Product(
             nombre=nombre,
             descripcion=descripcion,
             precio=precio,
             stock=stock,
             image_path=image_path,
-            seller_id=current_user.id
+            seller_id=current_user.id if current_user.is_seller else None  # Solo asignar seller_id si es vendedor
         )
         db.session.add(product)
         db.session.commit()
         flash("Producto agregado exitosamente.")
         return redirect(url_for('inventario'))
 
-    # Obtener productos del vendedor actual
-    current_user = get_current_user()
-    products = Product.query.filter_by(seller_id=current_user.id).all()
+    # Obtener productos del vendedor actual o todos los productos si es administrador
+    if current_user.is_admin:
+        products = Product.query.all()
+    else:
+        products = Product.query.filter_by(seller_id=current_user.id).all()
+    
     return render_template('inventario.html', products=products)
 
 # ---------------------------
@@ -225,20 +233,27 @@ def register():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        login_value = request.form.get('login')
-        password = request.form.get('password')
+        # Obtener los valores enviados desde el formulario
+        login_value = request.form.get('login')  # Puede ser email o nombre de usuario
+        password = request.form.get('password')  # Contraseña en texto plano
+
+        # Buscar al usuario por email o nombre de usuario
         user = None
-        if login_value and '@' in login_value:
+        if login_value and '@' in login_value:  # Si contiene '@', es un email
             user = User.query.filter_by(email=login_value, password=password).first()
-        else:
+        else:  # Si no, es un nombre de usuario
             user = User.query.filter_by(nombre=login_value, password=password).first()
+
+        # Verificar si el usuario existe y las credenciales son correctas
         if user:
-            session['user_id'] = user.id
+            session['user_id'] = user.id  # Guardar el ID del usuario en la sesión
             flash(f'Bienvenido, {user.nombre}!', 'success')
             return redirect(url_for('inicio'))
         else:
             flash('Credenciales incorrectas', 'error')
             return redirect(url_for('login'))
+
+    # Si es una solicitud GET, renderizar el formulario de inicio de sesión
     return render_template('login.html')
 
 # ---------------------------
@@ -255,15 +270,27 @@ def logout():
 @app.route('/producto/delete/<int:product_id>', methods=['POST'])
 def delete_product(product_id):
     current_user = get_current_user()
-    if not current_user or not current_user.is_seller:
-        abort(403)
+    if not current_user:
+        abort(403)  # Solo usuarios autenticados pueden eliminar productos
+
     product = Product.query.get_or_404(product_id)
-    # Permite eliminar solo si el producto fue agregado por el vendedor actual
-    if product.seller_id != current_user.id:
-        abort(403)
-    db.session.delete(product)
-    db.session.commit()
-    return redirect(url_for('inicio'))
+
+    # Permitir que los administradores eliminen cualquier producto
+    if current_user.is_admin:
+        db.session.delete(product)
+        db.session.commit()
+        flash("Producto eliminado exitosamente.", "success")
+        return redirect(url_for('inventario'))
+
+    # Permitir que los vendedores eliminen solo los productos que ellos agregaron
+    if current_user.is_seller and product.seller_id == current_user.id:
+        db.session.delete(product)
+        db.session.commit()
+        flash("Producto eliminado exitosamente.", "success")
+        return redirect(url_for('inventario'))
+
+    # Si no es administrador ni el vendedor que agregó el producto, denegar acceso
+    abort(403)
 
 # ---------------------------
 # Carrito de compra (almacenado en sesión)
@@ -309,27 +336,30 @@ def carrito():
 # ---------------------------
 # Proceso de compra
 # ---------------------------
-@app.route('/compra', methods=['GET','POST'])
+@app.route('/compra', methods=['GET', 'POST'])
 def compra():
     if 'cart' not in session or not session['cart']:
         return redirect(url_for('inicio'))
     cart = session['cart']
     total = 0.0
-    # Agrega 'stock' a cada ítem y revisa que la cantidad no supere el stock
+
     for prod_id, quantity in cart.items():
         product = Product.query.get(int(prod_id))
-        if not product or product.stock < quantity:
-            flash(f"El producto {product.nombre if product else 'desconocido'} no tiene stock suficiente.", 'error')
+        if not product:
+            flash(f"El producto con ID {prod_id} no existe.", 'error')
+            return redirect(url_for('carrito'))
+        if product.stock < quantity:
+            flash(f"El producto {product.nombre} no tiene stock suficiente.", 'error')
             return redirect(url_for('carrito'))
         total += product.precio * quantity
+
     for prod_id, quantity in cart.items():
         product = Product.query.get(int(prod_id))
         product.stock -= quantity
         if product.stock <= 0:
             db.session.delete(product)
     db.session.commit()
-    session['cart'] = {}  # Se limpia el carrito
-    # Redirige a la ruta de compra exitosa pasando el total como parámetro GET
+    session['cart'] = {}  # Limpiar el carrito
     return redirect(url_for('compra_exito', total=total))
 
 # ---------------------------

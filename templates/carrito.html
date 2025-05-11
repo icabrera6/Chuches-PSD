@@ -6,22 +6,57 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
-  <div class="wrapper">
+  <!-- Flash messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-messages">
+        {% for category, message in messages %}
+          <div class="flash-message {{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+  <div class="cart-wrapper">
     <h2>Carrito de Compras</h2>
     {% if cart_items %}
       <ul>
         {% for item in cart_items %}
-          <li>{{ item.nombre }} x{{ item.cantidad }} = {{ item.subtotal }}€</li>
+          <li>
+            <!-- Nombre del producto -->
+            <p class="cart-product-name">{{ item.nombre }}</p>
+            <!-- Controles de cantidad y imagen -->
+            <div class="cart-quantity">
+                <button type="button" class="decrement-btn" data-stock="{{ item.stock }}">−</button>
+                <img src="{{ url_for('static', filename=item.image_path) }}" alt="{{ item.nombre }}" class="cart-product">
+                <button type="button" class="increment-btn" data-stock="{{ item.stock }}">+</button>
+            </div>
+            <!-- Información adicional del producto -->
+            <div class="cart-product-info">
+                <span class="cart-product-stock">Stock: {{ item.stock }}</span>
+                <span class="cart-product-quantity">Cantidad: {{ item.cantidad }}</span>
+            </div>
+            <!-- Precio del producto -->
+            <p class="cart-product-price">{{ item.subtotal }}€</p>
+            <!-- Botón para eliminar el producto -->
+            <form action="{{ url_for('delete_from_cart') }}" method="POST" style="display:inline;">
+                <input type="hidden" name="product_id" value="{{ item.id }}">
+                <button type="submit">Eliminar</button>
+            </form>
+          </li>
         {% endfor %}
       </ul>
-      <h3>Total: {{ total }}€</h3>
-      <form action="{{ url_for('compra') }}" method="POST">
-        <button type="submit">Finalizar Compra</button>
-      </form>
+      <!-- Total -->
+      <p class="cart-total">Total: {{ total }}€</p>
+      <!-- Botones de acción -->
+      <div class="cart-actions">
+        <form action="{{ url_for('compra') }}" method="POST">
+          <button type="submit">Finalizar Compra</button>
+        </form>
+        <a href="{{ url_for('inicio') }}"><button type="button">Volver al Inicio</button></a>
+      </div>
     {% else %}
       <p>El carrito está vacío</p>
     {% endif %}
-    <a href="{{ url_for('inicio') }}"><button>Volver al Inicio</button></a>
   </div>
 </body>
 </html>

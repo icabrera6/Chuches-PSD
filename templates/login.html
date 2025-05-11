@@ -2,21 +2,41 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Chuches PSD | Login</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
+  <!-- Flash messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-messages">
+        {% for category, message in messages %}
+          <div class="flash-message {{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
   <div class="wrapper">
+    <h2>
+        <span class="emoji">🍭</span>
+        LOGIN
+        <span class="emoji">🍬</span>
+    </h2>
     <form action="{{ url_for('login') }}" method="POST">
-      <h2>Login</h2>
-      {% if error %}
-         <p style="color:red;">{{ error }}</p>
-      {% endif %}
-      <input type="text" name="login" placeholder="Email o Nombre de Usuario" required>
-      <input type="password" name="password" placeholder="Contraseña" required>
-      <button type="submit">Iniciar Sesión</button>
+        <div class="input-field">
+            <input type="text" name="login" placeholder="Correo o Nombre de Usuario" required>
+        </div>
+        <div class="input-field">
+            <input type="password" name="password" placeholder="Contraseña" required>
+        </div>
+        <button type="submit">Log In</button>
     </form>
-    <p>¿No tienes una cuenta? <a href="{{ url_for('register') }}">Registrate</a></p>
+    <div class="login">
+        <p>¿No tienes una cuenta? <a href="{{ url_for('register') }}">Regístrate</a></p>
+        <a href="{{ url_for('inicio') }}">Volver al inicio</a>
+    </div>
   </div>
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>

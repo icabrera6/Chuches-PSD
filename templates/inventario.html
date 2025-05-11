@@ -21,38 +21,38 @@
   <div class="wrapper">
     <h2>Inventario</h2>
     <ul>
-      {% for product in products %}
+        {% for product in products %}
         <li>
-          <strong>{{ product.nombre }}</strong> - {{ product.descripcion }} - {{ product.precio }}€ - Stock: {{ product.stock }}
-          {% if product.image_path %}
+            <strong>{{ product.nombre }}</strong> - {{ product.descripcion }} - {{ product.precio }}€ - Stock: {{ product.stock }}
+            {% if product.image_path %}
             <br><img src="{{ url_for('static', filename=product.image_path) }}" alt="{{ product.nombre }}" width="150">
-          {% endif %}
-          <form action="{{ url_for('delete_product', product_id=product.id) }}" method="POST" style="display:inline;">
-            <button type="submit">Eliminar</button>
-          </form>
+            {% endif %}
+            <form action="{{ url_for('delete_product', product_id=product.id) }}" method="POST" style="display:inline;">
+                <button type="submit">Eliminar</button>
+            </form>
         </li>
-      {% endfor %}
+        {% endfor %}
     </ul>
     <hr>
     <h2>Agregar Producto</h2>
     <form action="{{ url_for('inventario') }}" method="POST">
-      <input type="text" name="nombre" placeholder="Nombre del producto" required><br>
-      <textarea name="descripcion" placeholder="Descripción" required></textarea><br>
-      <input type="text" name="precio" placeholder="Precio" required><br>
-      <input type="text" name="stock" placeholder="Stock" required><br>
-      <label for="imagen">Elige una imagen:</label>
-      <select name="imagen" id="imagen" required>
-        <option value="Bombones.png">Bombones</option>
-        <option value="Brownies.png">Brownies</option>
-        <option value="Caramelos.png">Caramelos</option>
-        <option value="Cookies.png">Cookies</option>
-        <option value="Gominolas.png">Gominolas</option>
-        <option value="Nubes.png">Nubes</option>
-      </select><br>
-      <button type="submit">Agregar Producto</button>
+        <input type="text" name="nombre" placeholder="Nombre del producto" required>
+        <textarea name="descripcion" placeholder="Descripción" required></textarea>
+        <input type="text" name="precio" placeholder="Precio" required>
+        <input type="text" name="stock" placeholder="Stock" required>
+        <label for="imagen">Elige una imagen:</label>
+        <select name="imagen" id="imagen" required>
+            <option value="Bombones.png">Bombones</option>
+            <option value="Brownies.png">Brownies</option>
+            <option value="Caramelos.png">Caramelos</option>
+            <option value="Cookies.png">Cookies</option>
+            <option value="Gominolas.png">Gominolas</option>
+            <option value="Nubes.png">Nubes</option>
+        </select>
+        <button type="submit">Agregar Producto</button>
     </form>
     <a href="{{ url_for('inicio') }}"><button>Volver al Inicio</button></a>
-  </div>
+</div>
   <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>
