@@ -6,37 +6,12 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
-  <!-- Flash messages -->
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      <div class="flash-messages">
-        {% for category, message in messages %}
-          <div class="flash-message {{ category }}">{{ message }}</div>
-        {% endfor %}
-      </div>
-    {% endif %}
-  {% endwith %}
   <div class="wrapper">
     <h2>Carrito de Compras</h2>
     {% if cart_items %}
       <ul>
         {% for item in cart_items %}
-          <li>
-            <strong>{{ item.nombre }}</strong>:
-            <!-- Formulario para modificar cantidad con botones + y − -->
-            <form action="{{ url_for('carrito') }}" method="POST" class="quantity-form" style="display:inline;">
-              <input type="hidden" name="product_id" value="{{ item.id }}">
-              <button type="button" class="decrement-btn" data-stock="{{ item.stock }}">−</button>
-              <input type="text" name="quantity" value="{{ item.cantidad }}" readonly style="width:30px; text-align:center;">
-              <button type="button" class="increment-btn" data-stock="{{ item.stock }}">+</button>
-            </form>
-            = {{ item.subtotal }}€
-            <!-- Botón para eliminar el item -->
-            <form action="{{ url_for('delete_from_cart') }}" method="POST" style="display:inline;">
-              <input type="hidden" name="product_id" value="{{ item.id }}">
-              <button type="submit">Eliminar</button>
-            </form>
-          </li>
+          <li>{{ item.nombre }} x{{ item.cantidad }} = {{ item.subtotal }}€</li>
         {% endfor %}
       </ul>
       <h3>Total: {{ total }}€</h3>
@@ -48,6 +23,5 @@
     {% endif %}
     <a href="{{ url_for('inicio') }}"><button>Volver al Inicio</button></a>
   </div>
-  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>

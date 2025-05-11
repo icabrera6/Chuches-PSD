@@ -2,84 +2,48 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Chuches PSD | Inicio</title>
-  <link rel="icon" href="../static/imgs/logo_chuchesPSD.png" type="image/png">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <link rel="icon" href="../static/imgs/logo_chuchesPSD.png" type="image/png">
 </head>
 <body>
-  <!-- Navbar -->
-  <nav class="navbar">
-    <div class="navbar-container">
-      <a href="#" class="navbar-logo">
-        <img src="../static/imgs/logo_chuchesPSD.png" alt="Logo" height="50">
-      </a>
-      <div class="navbar-search">
-        <input type="text" placeholder="Buscar...">
-      </div>
-      <ul class="navbar-menu">
-        {% if current_user %}
-          {% if current_user.is_admin %}
-            <li><a href="{{ url_for('inventario') }}">Inventario</a></li>
-            <li><a href="{{ url_for('carrito') }}">Ver carrito</a></li>
-          {% elif current_user.is_seller %}
-            <li><a href="{{ url_for('inventario') }}">Inventario</a></li>
-          {% else %}
-            <li><a href="{{ url_for('carrito') }}">Ver carrito</a></li>
-          {% endif %}
-          <li><a href="{{ url_for('logout') }}">Cerrar sesión</a></li>
-        {% else %}
-          <li><a href="{{ url_for('login') }}">Inicio de sesión</a></li>
-        {% endif %}
-      </ul>
-    </div>
-  </nav>
-  
-  <!-- Banner Slider -->
-  <section class="slider-wrapper">
-    <div class="slider">
-      <img src="{{ url_for('static', filename='imgs/banner1.jpg') }}" alt="Banner 1">
-      <img src="{{ url_for('static', filename='imgs/banner2.jpg') }}" alt="Banner 2">
-      <img src="{{ url_for('static', filename='imgs/banner3.jpg') }}" alt="Banner 3">
-    </div>
-  </section>
-  
-  <!-- Flash messages -->
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      <div class="flash-messages">
-        {% for category, message in messages %}
-          <div class="flash-message {{ category }}">{{ message }}</div>
-        {% endfor %}
-      </div>
-    {% endif %}
-  {% endwith %}
-  
-  <!-- Productos en venta -->
-  <div class="products">
-    <br>
-    <br>
-    <h2>Productos en Venta</h2>
-    {% for product in products %}
-      <div class="product">
-        <h3>{{ product.nombre }}</h3>
-        <p>{{ product.descripcion }}</p>
-        <p>Precio: {{ product.precio }}€</p>
-        <p>Stock: {{ product.stock }}</p>
-        {% if product.image_path %}
-          <img src="{{ url_for('static', filename=product.image_path) }}" alt="{{ product.nombre }}" width="200">
-        {% endif %}
-        <form action="{{ url_for('carrito') }}" method="POST">
-          <input type="hidden" name="product_id" value="{{ product.id }}">
-          <input type="hidden" name="quantity" value="1">
-          <button type="submit">Añadir al carrito</button>
-        </form>
-      </div>
+  <div class="wrapper">
+    <h1>Chuches PSD</h1>
+    {% if current_user %}
+      <p>Bienvenido, {{ current_user.nombre }}!</p>
+      <a href="{{ url_for('logout') }}"><button>Logout</button></a>
     {% else %}
-      <p>No hay productos disponibles.</p>
-    {% endfor %}
+      <a href="{{ url_for('login') }}"><button>Identificarse</button></a>
+      <p><small>¿No tienes cuenta? <a href="{{ url_for('register') }}">Regístrate</a></small></p>
+    {% endif %}
+    <hr>
+    <h2>Productos</h2>
+    <ul>
+      {% for product in products %}
+        <li>
+          <strong>{{ product.nombre }}</strong> - {{ product.descripcion }} - {{ product.precio }}€ - Stock: {{ product.stock }}
+          {% if current_user and current_user.is_seller and product.seller_id == current_user.id %}
+            <form action="{{ url_for('delete_product', product_id=product.id) }}" method="POST" style="display:inline;">
+              <button type="submit">Eliminar</button>
+            </form>
+          {% endif %}
+        </li>
+      {% else %}
+        <li>No hay productos disponibles.</li>
+      {% endfor %}
+    </ul>
+    {% if current_user and current_user.is_seller %}
+      <hr>
+      <h2>Agregar Producto</h2>
+      <form action="{{ url_for('inicio') }}" method="POST" enctype="multipart/form-data">
+        <input type="text" name="nombre" placeholder="Nombre del producto" required><br>
+        <textarea name="descripcion" placeholder="Descripción" required></textarea><br>
+        <input type="text" name="precio" placeholder="Precio" required><br>
+        <input type="text" name="stock" placeholder="Stock" required><br>
+        <input type="file" name="imagen"><br>
+        <button type="submit">Agregar Producto</button>
+      </form>
+    {% endif %}
   </div>
-  
-  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>
