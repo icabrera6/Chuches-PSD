@@ -7,11 +7,72 @@
   <link rel="icon" href="../static/imgs/logo_chuchesPSD.png" type="image/png">
 </head>
 <body>
+<<<<<<< HEAD
   <div class="wrapper">
     <h1>Chuches PSD</h1>
     {% if current_user %}
       <p>Bienvenido, {{ current_user.nombre }}!</p>
       <a href="{{ url_for('logout') }}"><button>Logout</button></a>
+=======
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-container">
+      <a href="#" class="navbar-logo">
+        <img src="../static/imgs/logo_chuchesPSD.png" alt="Logo" height="50">
+      </a>
+      <div class="navbar-search">
+        <input type="text" placeholder="Buscar...">
+      </div>
+      <ul class="navbar-menu">
+        {% if current_user %}
+          {% if current_user.is_admin %}
+            <li><a href="{{ url_for('inventario') }}">Inventario</a></li>
+            <li><a href="{{ url_for('carrito') }}">Ver carrito</a></li>
+          {% elif current_user.is_seller %}
+            <li><a href="{{ url_for('inventario') }}">Inventario</a></li>
+          {% else %}
+            <li><a href="{{ url_for('carrito') }}">Ver carrito</a></li>
+          {% endif %}
+          <li><a href="{{ url_for('logout') }}">Cerrar sesión</a></li>
+        {% else %}
+          <li><a href="{{ url_for('login') }}">Inicio de sesión</a></li>
+        {% endif %}
+      </ul>
+    </div>
+  </nav>
+  
+  <!-- Flash messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-messages">
+        {% for category, message in messages %}
+          <div class="flash-message {{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+  
+  <!-- Productos en venta -->
+  <div class="products">
+    <br>
+    <br>
+    <h2>Productos en Venta</h2>
+    {% for product in products %}
+      <div class="product">
+        <h3>{{ product.nombre }}</h3>
+        <p>{{ product.descripcion }}</p>
+        <p>Precio: {{ product.precio }}€</p>
+        <p>Stock: {{ product.stock }}</p>
+        {% if product.image_path %}
+          <img src="{{ url_for('static', filename=product.image_path) }}" alt="{{ product.nombre }}" width="200">
+        {% endif %}
+        <form action="{{ url_for('carrito') }}" method="POST">
+          <input type="hidden" name="product_id" value="{{ product.id }}">
+          <input type="hidden" name="quantity" value="1">
+          <button type="submit">Añadir al carrito</button>
+        </form>
+      </div>
+>>>>>>> parent of f45e688 (minnor changes)
     {% else %}
       <a href="{{ url_for('login') }}"><button>Identificarse</button></a>
       <p><small>¿No tienes cuenta? <a href="{{ url_for('register') }}">Regístrate</a></small></p>
