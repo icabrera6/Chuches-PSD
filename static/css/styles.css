@@ -910,9 +910,15 @@ form button:hover {
     transition: all 0.3s ease;
 }
 
-.cart-quantity button:hover {
-    background-color: rgba(255, 255, 255, 0.2);
-    color: #A83737;
+.cart-quantity button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.cart-quantity img {
+    width: 100px;
+    height: auto;
+    margin: 0 10px;
 }
 
 .cart-quantity input {
@@ -1054,6 +1060,18 @@ form button:hover {
 .product-card button:hover {
     background-color: rgba(255, 255, 255, 0.2);
     color: #A83737;
+}
+
+.product-card {
+    display: block; /* Mostrar productos por defecto */
+    transition: all 0.3s ease; /* Transición suave al mostrar/ocultar */
+}
+
+.product-card[style="display: none;"] {
+    opacity: 0; /* Opcional: hacer que desaparezcan suavemente */
+    height: 0;
+    margin: 0;
+    padding: 0;
 }
 
 /* Mensajes flash de error y alerta */
@@ -1259,9 +1277,15 @@ form button:hover {
     transition: all 0.3s ease;
 }
 
-.cart-quantity button:hover {
-    background-color: rgba(255, 255, 255, 0.2);
-    color: #A83737;
+.cart-quantity button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.cart-quantity img {
+    width: 100px;
+    height: auto;
+    margin: 0 10px;
 }
 
 .cart-quantity input {
@@ -1319,7 +1343,7 @@ form button:hover {
 
 /* Asegurar que el título quede abajo del banner */
 .products-section header {
-    margin-top: 200px; /* Ajusta este valor según la altura fija del banner */
+    margin-top: 300px; /* Ajusta este valor según la altura fija del banner */
 }
 
 /* Estilo para el desplegable */
@@ -1336,4 +1360,18 @@ select {
 select option {
     color: black; /* Asegurar que las opciones también tengan texto negro */
     background-color: white; /* Fondo blanco para las opciones */
+}
+
+/* Imágenes en el carrito */
+.cart-product {
+    width: 100px;
+    height: auto;
+    margin: 0 10px;
+}
+
+/* Imágenes en el inventario */
+.inventory-product {
+    width: 100px;
+    height: auto;
+    margin: 10px 0;
 }

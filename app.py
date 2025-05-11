@@ -31,7 +31,7 @@ class Product(db.Model):
     descripcion = db.Column(db.Text, nullable=False)
     precio = db.Column(db.Float, nullable=False)
     stock = db.Column(db.Integer, nullable=False)
-    image_path = db.Column(db.String(200), nullable=True)
+    image_path = db.Column(db.String(200), nullable=False)  # Ruta de la imagen
     # Se asocia el producto con el vendedor que lo agregó
     seller_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     seller = db.relationship('User', backref=db.backref('products', lazy=True))
@@ -157,54 +157,39 @@ def inicio():
 # ---------------------------
 @app.route('/inventario', methods=['GET', 'POST'])
 def inventario():
-    # Permitir acceso solo a administradores o vendedores
-    current_user = get_current_user()
-    if not current_user or not (current_user.is_seller or current_user.is_admin):
-        abort(403)
-
     if request.method == 'POST':
-        # Validar datos del formulario
         nombre = request.form.get('nombre')
         descripcion = request.form.get('descripcion')
         precio = request.form.get('precio')
         stock = request.form.get('stock')
-        if not all([nombre, descripcion, precio, stock]):
-            flash("Todos los campos son requeridos para agregar un producto.")
+        imagen = request.form.get('imagen')
+
+        # Validar los datos del formulario
+        if not (nombre and descripcion and precio and stock and imagen):
+            flash("Todos los campos son obligatorios.", "error")
             return redirect(url_for('inventario'))
+
         try:
             precio = float(precio)
             stock = int(stock)
         except ValueError:
-            flash("Precio debe ser numérico y stock debe ser entero.")
+            flash("El precio debe ser un número y el stock un entero.", "error")
             return redirect(url_for('inventario'))
-        
-        # Leer la imagen seleccionada del formulario
-        selected_image = request.form.get('imagen')
-        image_path = None
-        if selected_image:
-            image_path = os.path.join('imgs', selected_image)
-        
-        # Crear el producto
-        product = Product(
-            nombre=nombre,
-            descripcion=descripcion,
-            precio=precio,
-            stock=stock,
-            image_path=image_path,
-            seller_id=current_user.id if current_user.is_seller else None  # Solo asignar seller_id si es vendedor
-        )
-        db.session.add(product)
+
+        # Concatenar la ruta de la carpeta imgs
+        image_path = f"imgs/{imagen}"
+
+        # Crear el producto y guardarlo en la base de datos
+        nuevo_producto = Product(nombre=nombre, descripcion=descripcion, precio=precio, stock=stock, image_path=image_path)
+        db.session.add(nuevo_producto)
         db.session.commit()
-        flash("Producto agregado exitosamente.")
+
+        flash("Producto agregado exitosamente.", "success")
         return redirect(url_for('inventario'))
 
-    # Obtener productos del vendedor actual o todos los productos si es administrador
-    if current_user.is_admin:
-        products = Product.query.all()
-    else:
-        products = Product.query.filter_by(seller_id=current_user.id).all()
-    
-    return render_template('inventario.html', products=products)
+    # Obtener todos los productos para mostrarlos en el inventario
+    productos = Product.query.all()
+    return render_template('inventario.html', products=productos)
 
 # ---------------------------
 # Registro de usuario
@@ -308,8 +293,15 @@ def carrito():
             quantity = int(quantity)
         except ValueError:
             return redirect(url_for('carrito'))
+        product = Product.query.get(int(product_id))
+        if not product:
+            flash("El producto no existe.", "error")
+            return redirect(url_for('carrito'))
+        if quantity > product.stock:
+            flash(f"No hay suficiente stock para {product.nombre}.", "error")
+            return redirect(url_for('carrito'))
         cart = session['cart']
-        if quantity == 0:
+        if quantity <= 0:
             cart.pop(product_id, None)
         else:
             cart[product_id] = quantity
@@ -328,7 +320,8 @@ def carrito():
                 'cantidad': qty,
                 'precio_unit': product.precio,
                 'subtotal': subtotal,
-                'stock': product.stock   # Agregado
+                'stock': product.stock,
+                'image_path': product.image_path  # Asegúrate de incluir la ruta de la imagen
             })
             total += subtotal
     return render_template('carrito.html', cart_items=cart_items, total=total)
@@ -336,20 +329,21 @@ def carrito():
 # ---------------------------
 # Proceso de compra
 # ---------------------------
-@app.route('/compra', methods=['GET', 'POST'])
+@app.route('/compra', methods=['POST'])
 def compra():
     if 'cart' not in session or not session['cart']:
-        return redirect(url_for('inicio'))
+        flash("El carrito está vacío.", "error")
+        return redirect(url_for('carrito'))
     cart = session['cart']
     total = 0.0
 
     for prod_id, quantity in cart.items():
         product = Product.query.get(int(prod_id))
         if not product:
-            flash(f"El producto con ID {prod_id} no existe.", 'error')
+            flash(f"El producto con ID {prod_id} no existe.", "error")
             return redirect(url_for('carrito'))
         if product.stock < quantity:
-            flash(f"El producto {product.nombre} no tiene stock suficiente.", 'error')
+            flash(f"El producto {product.nombre} no tiene stock suficiente.", "error")
             return redirect(url_for('carrito'))
         total += product.precio * quantity
 
@@ -359,7 +353,8 @@ def compra():
         if product.stock <= 0:
             db.session.delete(product)
     db.session.commit()
-    session['cart'] = {}  # Limpiar el carrito
+    session['cart'] = {}  # Limpiar el carrito después de la compra
+    flash("Compra realizada con éxito.", "success")
     return redirect(url_for('compra_exito', total=total))
 
 # ---------------------------

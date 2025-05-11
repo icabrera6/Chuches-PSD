@@ -1,18 +1,21 @@
 document.addEventListener("DOMContentLoaded", function() {
-  // Buscar en la navbar
-  const searchInput = document.querySelector('.navbar-search input');
-  if (searchInput) {
-    searchInput.addEventListener('keyup', function() {
-      const filter = searchInput.value.toLowerCase();
-      document.querySelectorAll('.products .product').forEach(function(product) {
-        const productNameElem = product.querySelector('h3');
-        if (productNameElem) {
-          const productName = productNameElem.textContent.toLowerCase();
-          product.style.display = productName.includes(filter) ? "block" : "none";
-        }
-      });
-    });
-  }
+    // Buscar en la barra de búsqueda
+    const searchInput = document.querySelector('.navbar-search input');
+    if (searchInput) {
+        searchInput.addEventListener('keyup', function() {
+            const filter = searchInput.value.toLowerCase();
+            const products = document.querySelectorAll('.product-card');
+            
+            products.forEach(function(product) {
+                const productName = product.querySelector('.product-name').textContent.toLowerCase();
+                if (productName.includes(filter)) {
+                    product.style.display = "block"; // Mostrar el producto si coincide
+                } else {
+                    product.style.display = "none"; // Ocultar el producto si no coincide
+                }
+            });
+        });
+    }
 
   // Ocultar mensajes flash después de 3 segundos
   setTimeout(function(){

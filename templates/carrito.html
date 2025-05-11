@@ -26,9 +26,18 @@
             <p class="cart-product-name">{{ item.nombre }}</p>
             <!-- Controles de cantidad y imagen -->
             <div class="cart-quantity">
-                <button type="button" class="decrement-btn" data-stock="{{ item.stock }}">−</button>
-                <img src="{{ url_for('static', filename=item.image_path) }}" alt="{{ item.nombre }}" class="cart-product">
-                <button type="button" class="increment-btn" data-stock="{{ item.stock }}">+</button>
+                <form action="{{ url_for('carrito') }}" method="POST" style="display:inline;">
+                    <input type="hidden" name="product_id" value="{{ item.id }}">
+                    <input type="hidden" name="quantity" value="{{ item.cantidad|int - 1 }}">
+                    <button type="submit" class="decrement-btn" {% if item.cantidad <= 1 %}disabled{% endif %}>−</button>
+                </form>
+                <!-- Imagen del producto con tamaño reducido -->
+                <img src="{{ url_for('static', filename=item.image_path) }}" alt="{{ item.nombre }}" class="cart-product" width="100">
+                <form action="{{ url_for('carrito') }}" method="POST" style="display:inline;">
+                    <input type="hidden" name="product_id" value="{{ item.id }}">
+                    <input type="hidden" name="quantity" value="{{ item.cantidad|int + 1 }}">
+                    <button type="submit" class="increment-btn" {% if item.cantidad >= item.stock %}disabled{% endif %}>+</button>
+                </form>
             </div>
             <!-- Información adicional del producto -->
             <div class="cart-product-info">
@@ -42,7 +51,7 @@
                 <input type="hidden" name="product_id" value="{{ item.id }}">
                 <button type="submit">Eliminar</button>
             </form>
-          </li>
+        </li>
         {% endfor %}
       </ul>
       <!-- Total -->

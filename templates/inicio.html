@@ -57,7 +57,7 @@
           {% if product.image_path %}
             <img src="{{ url_for('static', filename=product.image_path) }}" alt="{{ product.nombre }}">
           {% endif %}
-          <h3>{{ product.nombre }}</h3>
+          <h3 class="product-name">{{ product.nombre }}</h3>
           <p>{{ product.descripcion }}</p>
           <p>Precio: {{ product.precio }}€</p>
           <p>Stock: {{ product.stock }}</p>
